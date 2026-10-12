@@ -1,0 +1,52 @@
+Start: 7793 foods
+  - missing calories or a macro                                 0 dropped
+  - zero calories                                              37 dropped
+  - category not used for meals                              1325 dropped
+  - brand-name product                                        549 dropped
+  - processed form / organ / game / with salt                1813 dropped
+  - dry mix not prepared                                       68 dropped
+  - raw/dry version of food eaten cooked                      644 dropped
+  - grain ingredient (flour, bran, starch...)                  45 dropped
+  - sauce / gravy                                              55 dropped
+  - juice / drink                                              68 dropped
+  - calories inconsistent with macros (>35%)                    5 dropped
+End: 3184 foods
+
+Meal roles:
+meal_role
+protein      871
+carb         627
+vegetable    441
+snack        304
+fat          240
+dairy        216
+fruit        194
+mixed        167
+legume       124
+
+Categories kept:
+food_category
+Vegetables and Vegetable Products    553
+Baked Products                       416
+Beef Products                        263
+Dairy and Egg Products               230
+Fruits and Fruit Juices              194
+Legumes and Legume Products          173
+Sweets                               170
+Snacks                               134
+Sausages and Luncheon Meats          132
+Fats and Oils                        129
+Pork Products                        124
+Poultry Products                     114
+Nut and Seed Products                111
+Soups, Sauces, and Gravies           111
+Lamb, Veal, and Game Products         97
+Finfish and Shellfish Products        78
+Cereal Grains and Pasta               76
+Meals, Entrees, and Side Dishes       56
+Breakfast Cereals                     23
+
+Allergen tags: milk=713, egg=303, peanut=56, tree_nut=100, shellfish=50, fish=54, soy=83, wheat=584, sesame=27, gluten=591
+Allergen-free foods: 1861
+Vegetarian: 2240, contains pork: 238, contains alcohol: 2
+Foods using a real household portion: 3126
