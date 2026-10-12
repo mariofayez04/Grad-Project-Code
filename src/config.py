@@ -10,6 +10,7 @@ DATA_DIR = PROJECT_ROOT / "data"
 PROCESSED_DIR = DATA_DIR / "processed"
 FOODS_CLEAN = PROCESSED_DIR / "foods_clean.csv"
 EMBEDDINGS = PROCESSED_DIR / "embeddings.npy"
+EMBEDDING_IDS = PROCESSED_DIR / "embedding_ids.npy"  # fdc_id of each row in EMBEDDINGS
 DB_PATH = DATA_DIR / "app.db"
 
 # Hugging Face models
