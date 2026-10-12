@@ -1,0 +1,9 @@
+pandas==3.0.6
+numpy==2.5.4
+scikit-learn==1.9.1
+torch==2.14.1
+transformers==5.19.0
+sentence-transformers==6.1.0
+streamlit==1.65.0
+openpyxl
+pytest
