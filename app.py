@@ -11,6 +11,7 @@ from src import db
 from src.calculator import ACTIVITY_LABELS, GOAL_LABELS, UserProfile, calculate_targets
 from src.config import FOODS_CLEAN
 from src.embeddings import FoodEmbeddings
+from src.feedback import acceptance_rate, food_penalties, next_week_inputs, week_summary
 from src.parser import apply_to_foods, load_ner, parse_preferences
 from src.planner import DAYS, MealPlanner, taste_from_preferences
 
@@ -32,7 +33,7 @@ def load_resources():
     return foods, emb
 
 
-def build_plan(profile, foods, emb, taste_vector=None, food_penalties=None):
+def build_plan(profile, foods, emb, taste_vector=None, penalties=None):
     """Targets -> parse preferences -> filter foods -> plan. Returns everything needed to save it."""
     targets = calculate_targets(profile)
     prefs = parse_preferences(profile.preferences_text)
@@ -40,8 +41,25 @@ def build_plan(profile, foods, emb, taste_vector=None, food_penalties=None):
     if taste_vector is None:
         taste_vector = taste_from_preferences(prefs)
     seed = random.randint(0, 1_000_000)
-    plan = MealPlanner(allowed, emb, taste_vector, food_penalties, seed).plan_week(targets)
+    plan = MealPlanner(allowed, emb, taste_vector, penalties, seed).plan_week(targets)
     return plan, targets, prefs, seed, taste_vector
+
+
+def learned_inputs(user_id, foods):
+    """What earlier weeks taught us: (taste_vector of the latest plan, food penalties from finished weeks)."""
+    last = db.latest_plan(user_id)
+    taste = last["taste_vector"] if last else None
+    return taste, food_penalties(db.user_history(user_id), foods)
+
+
+def finish_week(plan, items, foods, emb):
+    """End the week: learn from the checkboxes and build next week's plan."""
+    db.mark_plan_finished(plan["id"])
+    user = db.get_user(plan["user_id"])
+    profile = UserProfile(**{k: user[k] for k in db.PROFILE_FIELDS})
+    taste, penalties = next_week_inputs(plan["taste_vector"], emb, items, db.user_history(user["id"]))
+    new_plan, targets, prefs, seed, taste = build_plan(profile, foods, emb, taste, penalties)
+    db.save_plan(user["id"], new_plan, targets, prefs, seed, taste)
 
 
 # --- sidebar: profile form -------------------------------------------------------------------------------
@@ -171,11 +189,40 @@ def show_overview(items):
                 .unstack("slot")[["breakfast", "lunch", "dinner", "snack"]].reset_index(level=0, drop=True))
     st.dataframe(overview, use_container_width=True)
 
+    st.download_button("⬇️ Download plan (CSV)", items.drop(columns=["id", "plan_id"]).to_csv(index=False),
+                       file_name="meal_plan.csv", mime="text/csv")
+
+
+def show_feedback(plan, items, foods, emb):
+    st.subheader("🔁 Finish the week")
     meals = items.groupby(["day_index", "slot"])["eaten"].max()
     done = int(meals.fillna(0).sum())
     st.progress(done / len(meals), text=f"Meals eaten this week: {done} / {len(meals)}")
-    st.download_button("⬇️ Download plan (CSV)", items.drop(columns=["id", "plan_id"]).to_csv(index=False),
-                       file_name="meal_plan.csv", mime="text/csv")
+    st.caption("When the week is over, press the button. Unticked meals count as skipped: next week shows those foods "
+               "(and similar ones) less often, and more of what you ate.")
+    if st.button("✅ Finish week & plan next week", type="primary", disabled=done == 0,
+                 help=None if done else "Tick at least one meal you ate first."):
+        with st.spinner("Learning from this week and building the next one..."):
+            finish_week(plan, items, foods, emb)
+        st.rerun()
+
+
+def show_learning(user_id):
+    """What the system learned from the previous weeks, and acceptance over time."""
+    history = db.user_history(user_id)
+    if history.empty:
+        return
+    st.subheader("📈 What I learned from your previous weeks")
+    last_week = history[history["week_number"] == history["week_number"].max()]
+    s = week_summary(last_week)
+    c = st.columns(2)
+    c[0].markdown("**Showing less often** (skipped last week)<br>" +
+                  ("<br>".join(f"• {n} ×{k}" for n, k in s["most_skipped"]) or "—"), unsafe_allow_html=True)
+    c[1].markdown("**Showing more like** (eaten last week)<br>" +
+                  ("<br>".join(f"• {n} ×{k}" for n, k in s["most_eaten"]) or "—"), unsafe_allow_html=True)
+    rates = pd.DataFrame([{"Week": f"Week {w}", "Meals eaten (%)": round(100 * acceptance_rate(g), 1)}
+                          for w, g in history.groupby("week_number")])
+    st.bar_chart(rates, x="Week", y="Meals eaten (%)", height=220)
 
 
 def main():
@@ -186,8 +233,10 @@ def main():
     if profile is not None:
         try:
             with st.spinner("Building your 7-day plan..."):
-                plan, targets, prefs, seed, taste = build_plan(profile, foods, emb)
+                calculate_targets(profile)  # validate before saving anything
                 user_id = db.save_user(profile)
+                taste, penalties = learned_inputs(user_id, foods)  # keep what earlier weeks taught us
+                plan, targets, prefs, seed, taste = build_plan(profile, foods, emb, taste, penalties)
                 db.save_plan(user_id, plan, targets, prefs, seed, taste)
             set_user(user_id)
             st.rerun()
@@ -215,6 +264,8 @@ def main():
     items = db.plan_items(plan["id"])
     show_week(plan, items)
     show_overview(items)
+    show_feedback(plan, items, foods, emb)
+    show_learning(user_id)
 
 
 main()

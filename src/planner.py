@@ -78,7 +78,7 @@ MAIN_CARB = Component(
     include=r"^(rice|pasta|spaghetti|macaroni|noodles|potatoes|sweet potato|couscous|bulgur|quinoa|bread|pita|beans|lentils|"
             r"chickpeas|corn|barley|freekeh)\b",
     exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE + r"|baked beans|refried|cereal|salad|scalloped|rice cake|crumbs|with pork|"
-                                              r"chow mein|fried|canned|flakes|pudding|fritter|candied|glazed",
+                                              r"chow mein|fried|canned|flakes|pudding|fritter|candied|glazed|skin\b",
     grams=(60, 350))
 VEGETABLE = Component("vegetable", ("vegetable",), include=COMMON_VEG,
                       exclude=r"pickled|dehydrated|juice|sauce|cream|soup|frozen.*butter|canned.*(cream|sauce)|onion rings|batter|"

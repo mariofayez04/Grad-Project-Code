@@ -165,6 +165,14 @@ def plan_items(plan_id):
         return pd.read_sql_query("SELECT * FROM plan_items WHERE plan_id = ? ORDER BY day_index, id", con, params=(plan_id,))
 
 
+def user_history(user_id, finished_only=True):
+    """All plan items of a user's weeks, with the week number (input for the feedback loop)."""
+    query = ("SELECT pi.*, p.week_number FROM plan_items pi JOIN plans p ON p.id = pi.plan_id WHERE p.user_id = ?"
+             + (" AND p.finished = 1" if finished_only else "") + " ORDER BY p.week_number, pi.day_index, pi.id")
+    with connect() as con:
+        return pd.read_sql_query(query, con, params=(user_id,))
+
+
 def set_meal_eaten(plan_id, day_index, slot, eaten):
     """eaten: True / False / None (unanswered). Applies to every item of the meal."""
     value = None if eaten is None else int(bool(eaten))
