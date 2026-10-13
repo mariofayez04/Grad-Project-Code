@@ -1,0 +1,12 @@
+# Run locally with Docker:   docker compose up --build      then open http://localhost:8501
+# The project's data/ folder is mapped into the container, so the SQLite database (data/app.db)
+# lives on your PC and survives container restarts. It is the same database a local `streamlit run` uses.
+services:
+  nutriplan:
+    build: .
+    image: nutriplan
+    ports:
+      - "127.0.0.1:8501:8501"   # only reachable from this PC
+    volumes:
+      - ./data:/home/user/app/data
+    restart: unless-stopped

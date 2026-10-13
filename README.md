@@ -61,6 +61,18 @@ python -m src.clean_data      # Phase 1: foods_clean.csv
 python -m src.embeddings      # Phase 4: embeddings.npy
 ```
 
+## Run with Docker
+
+```bash
+docker compose up -d --build     # first build takes ~5-10 min (downloads PyTorch + both models)
+docker compose logs -f           # watch the logs (Ctrl+C to stop watching)
+docker compose down              # stop
+```
+
+Open http://localhost:8501. The project's `data/` folder is mapped into the container, so the
+database (`data/app.db`) stays on your PC across restarts and is shared with a local `streamlit run`.
+The port is bound to `127.0.0.1`, so only this PC can reach the app.
+
 ## Tests and evaluation
 
 ```bash
