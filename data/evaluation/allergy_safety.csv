@@ -1,0 +1,21 @@
+allergies,parsed_groups,all_detected,items_served,violations
+"shellfish, soy","shellfish, soy",True,91,0
+egg,egg,True,91,0
+"egg, soy, peanut","egg, peanut, soy",True,89,0
+wheat,"gluten, wheat",True,90,0
+tree_nut,"peanut, tree_nut",True,91,0
+"milk, shellfish","milk, shellfish",True,86,0
+"soy, fish, shellfish","fish, shellfish, soy",True,91,0
+"egg, soy","egg, soy",True,91,0
+shellfish,shellfish,True,91,0
+"tree_nut, milk, sesame","milk, peanut, sesame, tree_nut",True,91,0
+"peanut, milk","milk, peanut",True,90,0
+peanut,peanut,True,90,0
+"tree_nut, egg","egg, peanut, tree_nut",True,90,0
+"sesame, milk, soy","milk, sesame, soy",True,90,0
+"sesame, fish, egg","egg, fish, sesame",True,90,0
+"peanut, shellfish","peanut, shellfish",True,90,0
+"shellfish, sesame","sesame, shellfish",True,90,0
+"shellfish, soy","shellfish, soy",True,89,0
+"milk, soy","milk, soy",True,91,0
+"tree_nut, milk, peanut","milk, peanut, tree_nut",True,91,0
