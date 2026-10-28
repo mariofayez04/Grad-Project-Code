@@ -411,7 +411,7 @@ The project was built locally in VS Code / Python (not Colab), so the Gemini pro
 | 2026-10-27 | Small fixes, "Swap a food" feature, design changes (section 17.3) |
 | 2026-10-27 | Roadmap #1 private users (PIN), #3 shopping list, #5 New meal / New day with before-after choice (section 17.7) |
 | 2026-10-28 | #8 PDF, #11 meals per day, bug fix (PDF downloading at sign-in), #7 extra nutrients, #10 diet modes + nutrient caps, #6 weight tracking, #9 Egyptian dishes, #2 evaluation + real-user tools, dishes in feedback learning |
-| 2026-10-28 | All of the above committed to git (section 17.8) |
+| 2026-10-28 | All of the above committed, merged into `main` and pushed to GitHub (section 17.8) |
 
 ### 17.2 What each phase built
 
@@ -659,10 +659,10 @@ Built one at a time, each reviewed before the next:
 
 **Roadmap complete (2026-10-28).** Still open: put the site online (needs `hf auth login`), collect held-out sentences + a one-week pilot with 5-10 people, write the report.
 
-### 17.8 Saved to git (2026-10-28)
+### 17.8 Saved to git and GitHub (2026-10-28)
 
-All the work of 2026-10-27 and 2026-10-28 (sections 17.3 and 17.7) is committed in one commit on the branch `feature-roadmap` (made from `main`), so `main` still holds the Phase 1-8 version until it is merged. Not pushed to GitHub.
-- Merge into `main` when happy: `git checkout main` then `git merge feature-roadmap`; push with `git push` when you want it on GitHub.
+All the work of 2026-10-27 and 2026-10-28 (sections 17.3 and 17.7) is in commit `5a39318`, made on the branch `feature-roadmap`, then merged into `main` (fast-forward) and pushed to GitHub (`origin` = github.com/mariofayez04/Grad-Project-Code), together with the earlier unpushed Docker Compose commit. The merged branch was deleted.
 - Not in git on purpose (`.gitignore`): `data/app.db` (people's profiles and plans), `data/secret.key` (sign-in link secret), `data/plan_demo.pdf` (demo output), `.venv/`.
 - Before committing, a test was found writing its fake survey comment into `data/evaluation/pilot_comments.csv`; the test now writes to a temporary folder and the file was removed.
 - 235 tests pass at this commit.
+- Left out of the commits on purpose: an uncommitted change to `.streamlit/config.toml` (a light "sage green" theme) made after the commit, outside this work. It was kept as it is in the working folder; commit it when it's finished.
