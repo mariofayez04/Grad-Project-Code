@@ -9,7 +9,8 @@ import pytest
 from src import db
 from src.calculator import UserProfile
 from src.config import EMBEDDINGS, FOODS_CLEAN
-from src.feedback import acceptance_rate, food_penalties, meal_status, split_foods, update_taste
+from src.feedback import (acceptance_rate, food_penalties, meal_status, next_week_inputs, split_foods, update_taste,
+                          week_summary)
 
 pytestmark = pytest.mark.skipif(not EMBEDDINGS.exists(), reason="run `python -m src.embeddings` first")
 
@@ -99,7 +100,10 @@ def test_app_finish_week(tmp_path, monkeypatch):
     monkeypatch.setenv("NUTRI_DB_PATH", str(tmp_path / "t.db"))
     from streamlit.testing.v1 import AppTest
     at = AppTest.from_file("../app.py", default_timeout=180).run()
+    at.radio[0].set_value("New user").run()
     at.text_input[0].input("Laila")
+    at.text_input[1].input("1234")
+    at.text_input[2].input("1234")
     at.button[0].click().run()
     at.checkbox[0].check().run()
     finish = next(b for b in at.button if "Finish week" in b.label)
@@ -110,3 +114,63 @@ def test_app_finish_week(tmp_path, monkeypatch):
     assert [p["week_number"] for p in plans] == [1, 2] and plans[0]["finished"] == 1
     assert db.latest_plan(uid)["taste_vector"] is not None
     assert any("What I learned" in s.value for s in at.subheader)
+
+
+def test_swapped_food_counts_as_skipped(foods, emb):
+    """A food swapped away is penalised next week even though its meal was eaten, and it moves the taste vector."""
+    chicken, rice = ids(foods, r"^Chicken, broiler.*breast.*roasted")[0], ids(foods, r"^Rice, white")[0]
+    week = toy_week([chicken, rice], [], week=1)  # lunch eaten, after swapping something away
+    swaps = pd.DataFrame({"old_fdc_id": [chicken], "old_name": ["Chicken breast"], "week_number": [1]})
+    without = food_penalties(week)
+    with_swaps = food_penalties(week, swaps=swaps)
+    assert with_swaps[chicken] == pytest.approx(without[chicken] + 0.8)
+    assert with_swaps[rice] == without[rice]
+
+    taste_plain, _ = next_week_inputs(None, emb, week, week)
+    taste_swap, _ = next_week_inputs(None, emb, week, week, swaps)
+    chicken_vec = emb.vector(chicken)
+    assert taste_swap @ chicken_vec < taste_plain @ chicken_vec
+    assert week_summary(week, swaps=swaps)["swapped_away"] == [("Chicken breast", 1)]
+
+
+def test_old_swaps_do_not_move_this_weeks_taste(foods, emb):
+    chicken = ids(foods, r"^Chicken, broiler.*breast.*roasted")[0]
+    history = pd.concat([toy_week([chicken], [], week=1), toy_week([chicken], [], week=2)])
+    old_swap = pd.DataFrame({"old_fdc_id": [chicken], "old_name": ["x"], "week_number": [1]})
+    last = history[history["week_number"] == 2]
+    assert np.allclose(next_week_inputs(None, emb, last, history, old_swap)[0], next_week_inputs(None, emb, last, history)[0])
+
+
+def dish_id(foods, name):
+    return int(foods.loc[foods["description"].str.startswith(name + ","), "fdc_id"].iloc[0])
+
+
+def test_dishes_belong_to_their_ingredient_families(foods):
+    from src.feedback import food_families
+    fams = food_families(foods)
+    assert {"beef", "okra", "rice"} <= fams[dish_id(foods, "Bamya with rice")]
+    assert "fish" in fams[dish_id(foods, "Sayadiya")] and "egg" in fams[dish_id(foods, "Shakshuka")]
+    assert not fams[dish_id(foods, "Koshari")] & {"beef", "chicken", "fish"}
+    assert "oil" not in fams[dish_id(foods, "Koshari")] and "soup" not in fams[dish_id(foods, "Molokhia with rice and chicken")]
+
+
+def test_family_penalty_reaches_dishes(foods):
+    """Beef skipped more than average -> dishes made with beef are pushed down too, other dishes are not."""
+    beef = ids(foods, r"^Beef, .*cooked", 3)
+    rice = ids(foods, r"^Rice, white", 1)
+    rows = [(d, "dinner", f, None) for d, f in enumerate(beef)] + [(d, "lunch", rice[0], 1) for d in range(3)]
+    week = pd.DataFrame(rows, columns=["day_index", "slot", "fdc_id", "eaten"]).assign(name="x", week_number=1)
+    p = food_penalties(week, foods)
+    assert p.get(dish_id(foods, "Bamya with rice"), 0) > 0 and p.get(dish_id(foods, "Kofta"), 0) > 0
+    assert dish_id(foods, "Koshari") not in p and dish_id(foods, "Ful medames") not in p
+
+
+def test_skipped_dish_counts_for_its_ingredients(foods):
+    """Skipping beef dishes again and again also pushes down a plain beef cut never shown."""
+    dishes = [dish_id(foods, n) for n in ("Bamya with rice", "Kofta", "Hawawshi")]
+    lentils = ids(foods, r"^Lentils, mature seeds, cooked", 1)[0]
+    rows = [(d, "dinner", f, None) for d, f in enumerate(dishes)] + [(d, "lunch", lentils, 1) for d in range(3)]
+    week = pd.DataFrame(rows, columns=["day_index", "slot", "fdc_id", "eaten"]).assign(name="x", week_number=1)
+    p = food_penalties(week, foods)
+    steak = ids(foods, r"^Beef, .*steak.*cooked", 1)[0]
+    assert p.get(steak, 0) > 0 and lentils in p and p[lentils] < 0         # beef down, eaten lentils up

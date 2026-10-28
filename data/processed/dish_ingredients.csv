@@ -1,0 +1,132 @@
+dish_fdc_id,dish,fdc_id,description,label,food_category,grams,serving_g
+9000001,Ful medames,173753,"Broadbeans (fava beans), mature seeds, cooked, boiled, without salt",fava beans,Legumes and Legume Products,200.0,269.0
+9000001,Ful medames,171413,"Oil, olive, salad or cooking",olive oil,Fats and Oils,10.0,269.0
+9000001,Ful medames,167747,"Lemon juice, raw",lemon juice,Fruits and Fruit Juices,10.0,269.0
+9000001,Ful medames,170457,"Tomatoes, red, ripe, raw, year round average",tomato,Vegetables and Vegetable Products,40.0,269.0
+9000001,Ful medames,170416,"Parsley, fresh",parsley,Vegetables and Vegetable Products,5.0,269.0
+9000001,Ful medames,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,3.0,269.0
+9000001,Ful medames,170923,"Spices, cumin seed",cumin,Spices and Herbs,1.0,269.0
+9000002,Taameya,172455,"Falafel, home-prepared",falafel,Legumes and Legume Products,120.0,215.0
+9000002,Taameya,168604,"Seeds, sesame butter, tahini, type of kernels unspecified",tahini,Nut and Seed Products,15.0,215.0
+9000002,Taameya,170457,"Tomatoes, red, ripe, raw, year round average",tomato,Vegetables and Vegetable Products,40.0,215.0
+9000002,Taameya,168409,"Cucumber, with peel, raw",cucumber,Vegetables and Vegetable Products,40.0,215.0
+9000003,Shakshuka,171287,"Egg, whole, raw, fresh",eggs,Dairy and Egg Products,100.0,351.0
+9000003,Shakshuka,170457,"Tomatoes, red, ripe, raw, year round average",tomato,Vegetables and Vegetable Products,150.0,351.0
+9000003,Shakshuka,170427,"Peppers, sweet, green, raw",green pepper,Vegetables and Vegetable Products,50.0,351.0
+9000003,Shakshuka,170000,"Onions, raw",onion,Vegetables and Vegetable Products,40.0,351.0
+9000003,Shakshuka,171413,"Oil, olive, salad or cooking",olive oil,Fats and Oils,10.0,351.0
+9000003,Shakshuka,170923,"Spices, cumin seed",cumin,Spices and Herbs,1.0,351.0
+9000004,Gebna with tomatoes,173417,"Cheese, cottage, lowfat, 1% milkfat",cottage cheese (gebna),Dairy and Egg Products,150.0,299.0
+9000004,Gebna with tomatoes,170457,"Tomatoes, red, ripe, raw, year round average",tomato,Vegetables and Vegetable Products,80.0,299.0
+9000004,Gebna with tomatoes,168409,"Cucumber, with peel, raw",cucumber,Vegetables and Vegetable Products,60.0,299.0
+9000004,Gebna with tomatoes,171413,"Oil, olive, salad or cooking",olive oil,Fats and Oils,7.0,299.0
+9000004,Gebna with tomatoes,173475,"Spearmint, fresh",mint,Spices and Herbs,2.0,299.0
+9000005,Bessara,173753,"Broadbeans (fava beans), mature seeds, cooked, boiled, without salt",fava beans,Legumes and Legume Products,180.0,292.0
+9000005,Bessara,168463,"Spinach, cooked, boiled, drained, without salt",spinach,Vegetables and Vegetable Products,40.0,292.0
+9000005,Bessara,170416,"Parsley, fresh",parsley,Vegetables and Vegetable Products,15.0,292.0
+9000005,Bessara,172233,"Dill weed, fresh",dill,Spices and Herbs,10.0,292.0
+9000005,Bessara,170000,"Onions, raw",onion,Vegetables and Vegetable Products,30.0,292.0
+9000005,Bessara,171413,"Oil, olive, salad or cooking",olive oil,Fats and Oils,12.0,292.0
+9000005,Bessara,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,4.0,292.0
+9000005,Bessara,170923,"Spices, cumin seed",cumin,Spices and Herbs,1.0,292.0
+9000006,Koshari,168878,"Rice, white, long-grain, regular, enriched, cooked",rice,Cereal Grains and Pasta,120.0,454.0
+9000006,Koshari,172421,"Lentils, mature seeds, cooked, boiled, without salt",lentils,Legumes and Legume Products,80.0,454.0
+9000006,Koshari,169737,"Pasta, cooked, enriched, without added salt",pasta,Cereal Grains and Pasta,80.0,454.0
+9000006,Koshari,173757,"Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt",chickpeas,Legumes and Legume Products,30.0,454.0
+9000006,Koshari,170054,"Tomato products, canned, sauce",tomato sauce,Vegetables and Vegetable Products,80.0,454.0
+9000006,Koshari,170000,"Onions, raw",onion,Vegetables and Vegetable Products,40.0,454.0
+9000006,Koshari,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,15.0,454.0
+9000006,Koshari,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,3.0,454.0
+9000006,Koshari,172237,"Vinegar, distilled",vinegar,Spices and Herbs,5.0,454.0
+9000006,Koshari,170923,"Spices, cumin seed",cumin,Spices and Herbs,1.0,454.0
+9000007,Molokhia with rice and chicken,168420,"Jute, potherb, cooked, boiled, drained, without salt",molokhia leaves,Vegetables and Vegetable Products,200.0,617.0
+9000007,Molokhia with rice and chicken,174536,"Soup, chicken broth, ready-to-serve",chicken broth,"Soups, Sauces, and Gravies",150.0,617.0
+9000007,Molokhia with rice and chicken,168878,"Rice, white, long-grain, regular, enriched, cooked",rice,Cereal Grains and Pasta,150.0,617.0
+9000007,Molokhia with rice and chicken,171477,"Chicken, broilers or fryers, breast, meat only, cooked, roasted",chicken breast,Poultry Products,100.0,617.0
+9000007,Molokhia with rice and chicken,173412,"Butter oil, anhydrous",ghee,Dairy and Egg Products,8.0,617.0
+9000007,Molokhia with rice and chicken,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,6.0,617.0
+9000007,Molokhia with rice and chicken,169997,"Coriander (cilantro) leaves, raw",fresh coriander,Vegetables and Vegetable Products,3.0,617.0
+9000008,Mahshi,169292,"Squash, summer, zucchini, includes skin, cooked, boiled, drained, without salt",zucchini,Vegetables and Vegetable Products,120.0,427.0
+9000008,Mahshi,170428,"Peppers, sweet, green, cooked, boiled, drained, without salt",green pepper,Vegetables and Vegetable Products,60.0,427.0
+9000008,Mahshi,168882,"Rice, white, short-grain, enriched, cooked",short-grain rice,Cereal Grains and Pasta,130.0,427.0
+9000008,Mahshi,170460,"Tomato products, canned, puree, without salt added",tomato puree,Vegetables and Vegetable Products,60.0,427.0
+9000008,Mahshi,170000,"Onions, raw",onion,Vegetables and Vegetable Products,30.0,427.0
+9000008,Mahshi,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,12.0,427.0
+9000008,Mahshi,170416,"Parsley, fresh",parsley,Vegetables and Vegetable Products,8.0,427.0
+9000008,Mahshi,172233,"Dill weed, fresh",dill,Spices and Herbs,5.0,427.0
+9000008,Mahshi,173475,"Spearmint, fresh",mint,Spices and Herbs,2.0,427.0
+9000009,Fattah,168878,"Rice, white, long-grain, regular, enriched, cooked",rice,Cereal Grains and Pasta,150.0,494.0
+9000009,Fattah,174915,"Bread, pita, white, enriched",baladi bread,Baked Products,50.0,494.0
+9000009,Fattah,174050,"Beef, chuck, arm pot roast, separable lean only, trimmed to 1/8"" fat, all grades, cooked, braised",beef,Beef Products,110.0,494.0
+9000009,Fattah,174536,"Soup, chicken broth, ready-to-serve",chicken broth,"Soups, Sauces, and Gravies",100.0,494.0
+9000009,Fattah,170460,"Tomato products, canned, puree, without salt added",tomato puree,Vegetables and Vegetable Products,60.0,494.0
+9000009,Fattah,173412,"Butter oil, anhydrous",ghee,Dairy and Egg Products,10.0,494.0
+9000009,Fattah,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,6.0,494.0
+9000009,Fattah,172237,"Vinegar, distilled",vinegar,Spices and Herbs,8.0,494.0
+9000010,Bamya with rice,169261,"Okra, cooked, boiled, drained, without salt",okra,Vegetables and Vegetable Products,180.0,547.0
+9000010,Bamya with rice,174050,"Beef, chuck, arm pot roast, separable lean only, trimmed to 1/8"" fat, all grades, cooked, braised",beef,Beef Products,90.0,547.0
+9000010,Bamya with rice,170460,"Tomato products, canned, puree, without salt added",tomato puree,Vegetables and Vegetable Products,80.0,547.0
+9000010,Bamya with rice,168878,"Rice, white, long-grain, regular, enriched, cooked",rice,Cereal Grains and Pasta,150.0,547.0
+9000010,Bamya with rice,170000,"Onions, raw",onion,Vegetables and Vegetable Products,30.0,547.0
+9000010,Bamya with rice,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,10.0,547.0
+9000010,Bamya with rice,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,4.0,547.0
+9000010,Bamya with rice,169997,"Coriander (cilantro) leaves, raw",fresh coriander,Vegetables and Vegetable Products,3.0,547.0
+9000011,Kofta,174031,"Beef, ground, 90% lean meat / 10% fat, patty, cooked, broiled",lean minced beef,Beef Products,150.0,314.0
+9000011,Kofta,170000,"Onions, raw",onion,Vegetables and Vegetable Products,20.0,314.0
+9000011,Kofta,170416,"Parsley, fresh",parsley,Vegetables and Vegetable Products,8.0,314.0
+9000011,Kofta,170923,"Spices, cumin seed",cumin,Spices and Herbs,1.0,314.0
+9000011,Kofta,168604,"Seeds, sesame butter, tahini, type of kernels unspecified",tahini,Nut and Seed Products,15.0,314.0
+9000011,Kofta,170457,"Tomatoes, red, ripe, raw, year round average",tomato,Vegetables and Vegetable Products,60.0,314.0
+9000011,Kofta,168409,"Cucumber, with peel, raw",cucumber,Vegetables and Vegetable Products,60.0,314.0
+9000012,Hawawshi,174916,"Bread, pita, whole-wheat",whole-wheat baladi bread,Baked Products,110.0,280.0
+9000012,Hawawshi,174032,"Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",minced beef,Beef Products,110.0,280.0
+9000012,Hawawshi,170000,"Onions, raw",onion,Vegetables and Vegetable Products,30.0,280.0
+9000012,Hawawshi,170427,"Peppers, sweet, green, raw",green pepper,Vegetables and Vegetable Products,25.0,280.0
+9000012,Hawawshi,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,5.0,280.0
+9000013,Sayadiya,175177,"Fish, tilapia, cooked, dry heat",tilapia,Finfish and Shellfish Products,150.0,423.0
+9000013,Sayadiya,168878,"Rice, white, long-grain, regular, enriched, cooked",rice,Cereal Grains and Pasta,180.0,423.0
+9000013,Sayadiya,170000,"Onions, raw",onion,Vegetables and Vegetable Products,50.0,423.0
+9000013,Sayadiya,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,12.0,423.0
+9000013,Sayadiya,170460,"Tomato products, canned, puree, without salt added",tomato puree,Vegetables and Vegetable Products,30.0,423.0
+9000013,Sayadiya,170923,"Spices, cumin seed",cumin,Spices and Herbs,1.0,423.0
+9000014,Fasolia with rice,175203,"Beans, white, mature seeds, cooked, boiled, without salt",white beans,Legumes and Legume Products,150.0,471.0
+9000014,Fasolia with rice,174050,"Beef, chuck, arm pot roast, separable lean only, trimmed to 1/8"" fat, all grades, cooked, braised",beef,Beef Products,70.0,471.0
+9000014,Fasolia with rice,170460,"Tomato products, canned, puree, without salt added",tomato puree,Vegetables and Vegetable Products,80.0,471.0
+9000014,Fasolia with rice,168878,"Rice, white, long-grain, regular, enriched, cooked",rice,Cereal Grains and Pasta,130.0,471.0
+9000014,Fasolia with rice,170000,"Onions, raw",onion,Vegetables and Vegetable Products,30.0,471.0
+9000014,Fasolia with rice,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,8.0,471.0
+9000014,Fasolia with rice,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,3.0,471.0
+9000015,Shorbet ads,172421,"Lentils, mature seeds, cooked, boiled, without salt",lentils,Legumes and Legume Products,220.0,470.0
+9000015,Shorbet ads,174536,"Soup, chicken broth, ready-to-serve",chicken broth,"Soups, Sauces, and Gravies",150.0,470.0
+9000015,Shorbet ads,170394,"Carrots, cooked, boiled, drained, without salt",carrots,Vegetables and Vegetable Products,40.0,470.0
+9000015,Shorbet ads,170001,"Onions, cooked, boiled, drained, without salt",onion,Vegetables and Vegetable Products,40.0,470.0
+9000015,Shorbet ads,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,8.0,470.0
+9000015,Shorbet ads,167747,"Lemon juice, raw",lemon juice,Fruits and Fruit Juices,10.0,470.0
+9000015,Shorbet ads,170923,"Spices, cumin seed",cumin,Spices and Herbs,2.0,470.0
+9000016,Mesaqaa,169229,"Eggplant, cooked, boiled, drained, without salt",eggplant,Vegetables and Vegetable Products,200.0,449.0
+9000016,Mesaqaa,174032,"Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",minced beef,Beef Products,60.0,449.0
+9000016,Mesaqaa,170460,"Tomato products, canned, puree, without salt added",tomato puree,Vegetables and Vegetable Products,100.0,449.0
+9000016,Mesaqaa,170428,"Peppers, sweet, green, cooked, boiled, drained, without salt",green pepper,Vegetables and Vegetable Products,40.0,449.0
+9000016,Mesaqaa,170000,"Onions, raw",onion,Vegetables and Vegetable Products,30.0,449.0
+9000016,Mesaqaa,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,15.0,449.0
+9000016,Mesaqaa,169230,"Garlic, raw",garlic,Vegetables and Vegetable Products,4.0,449.0
+9000017,Torly,170440,"Potatoes, boiled, cooked without skin, flesh, without salt",potatoes,Vegetables and Vegetable Products,100.0,460.0
+9000017,Torly,169292,"Squash, summer, zucchini, includes skin, cooked, boiled, drained, without salt",zucchini,Vegetables and Vegetable Products,70.0,460.0
+9000017,Torly,170394,"Carrots, cooked, boiled, drained, without salt",carrots,Vegetables and Vegetable Products,50.0,460.0
+9000017,Torly,170420,"Peas, green, cooked, boiled, drained, without salt",peas,Vegetables and Vegetable Products,50.0,460.0
+9000017,Torly,174050,"Beef, chuck, arm pot roast, separable lean only, trimmed to 1/8"" fat, all grades, cooked, braised",beef,Beef Products,70.0,460.0
+9000017,Torly,170460,"Tomato products, canned, puree, without salt added",tomato puree,Vegetables and Vegetable Products,80.0,460.0
+9000017,Torly,170000,"Onions, raw",onion,Vegetables and Vegetable Products,30.0,460.0
+9000017,Torly,171017,"Oil, sunflower, linoleic (less than 60%)",sunflower oil,Fats and Oils,10.0,460.0
+9000018,Ferakh bel roz,172388,"Chicken, broilers or fryers, thigh, meat only, cooked, roasted",chicken thigh,Poultry Products,130.0,326.0
+9000018,Ferakh bel roz,168878,"Rice, white, long-grain, regular, enriched, cooked",rice,Cereal Grains and Pasta,170.0,326.0
+9000018,Ferakh bel roz,169737,"Pasta, cooked, enriched, without added salt",pasta,Cereal Grains and Pasta,20.0,326.0
+9000018,Ferakh bel roz,173412,"Butter oil, anhydrous",ghee,Dairy and Egg Products,6.0,326.0
+9000019,Halabessa,173757,"Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt",chickpeas,Legumes and Legume Products,160.0,291.0
+9000019,Halabessa,174536,"Soup, chicken broth, ready-to-serve",chicken broth,"Soups, Sauces, and Gravies",120.0,291.0
+9000019,Halabessa,167747,"Lemon juice, raw",lemon juice,Fruits and Fruit Juices,10.0,291.0
+9000019,Halabessa,170923,"Spices, cumin seed",cumin,Spices and Herbs,1.0,291.0
+9000020,Roz bel laban,171265,"Milk, whole, 3.25% milkfat, with added vitamin D",milk,Dairy and Egg Products,150.0,226.0
+9000020,Roz bel laban,168882,"Rice, white, short-grain, enriched, cooked",short-grain rice,Cereal Grains and Pasta,60.0,226.0
+9000020,Roz bel laban,169655,"Sugars, granulated",sugar,Sweets,15.0,226.0
+9000020,Roz bel laban,171320,"Spices, cinnamon, ground",cinnamon,Spices and Herbs,1.0,226.0

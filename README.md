@@ -23,18 +23,23 @@ macro targets, and learns from the meals the user actually eats.
 
 | Input | Output |
 |---|---|
-| Name, age, biological sex, weight, height, activity level (1-3), goal | Daily calorie target and macro split (g) |
-| Free-text preferences and allergies | 7-day plan: breakfast, lunch, dinner, snack with gram portions |
+| Name + PIN (private sign-in), age, biological sex, weight, height, activity level (1-3), goal, meals per day (3-5), optional diet mode (diabetes-friendly, low-salt) | Daily calorie target and macro split (g), plus fiber, sugars, saturated fat, sodium, potassium, calcium and iron |
+| Free-text preferences and allergies | 7-day plan with 3, 4 or 5 meals a day and gram portions, incl. 20 Egyptian dishes (koshari, ful, molokhia...) |
 | "Eaten" checkbox under every meal | Next week's plan adapted to what was eaten and skipped |
+| "⚖️ Log weight" | Weight chart vs the plan's expected trend, pace per week, targets that follow your weight |
+| "🖨️ Download plan (PDF)" | Printable week: every day with tick boxes, plus the shopping list |
+| "🎲 New meal" / "New version of this day" | A different meal or day shown next to the current one; you keep the one you prefer and next week learns from it |
+| "Swap a food" under every meal | Similar foods (embeddings + macro profile) 3 at a time with "Show more", or type what you would like; sized to keep the calories; swapped-away foods appear less next week |
 
 ## How it works
 
 ```
 profile ──► calculator.py ──► daily kcal + macros (Mifflin-St Jeor, activity, goal, safety floor, protein cap)
 free text ─► parser.py ─────► block / avoid / prefer   (FoodBaseBERT-NER + rules + allergen dictionary)
-USDA SR Legacy ─► clean_data.py ─► foods_clean.csv (3,184 foods, allergen + diet tags, meal roles)
+USDA SR Legacy ─► clean_data.py ─► foods_clean.csv (3,184 foods + 20 Egyptian dishes, allergen + diet tags, meal roles)
 foods ──► embeddings.py ────► 384-d vectors (all-MiniLM-L6-v2), computed once
             planner.py ─────► 7-day plan: score candidates, combine 2-4 foods, solve grams (bounded least squares)
+                              + swap a food: same meal component, nearest in embedding + macro space
 checkboxes ► feedback.py ───► taste vector + food / family penalties for next week
             app.py ─────────► Streamlit UI, SQLite storage
 ```
@@ -76,12 +81,27 @@ The port is bound to `127.0.0.1`, so only this PC can reach the app.
 ## Tests and evaluation
 
 ```bash
-python -m pytest tests -q     # 128 tests
-python -m src.evaluate        # writes data/evaluation/results.md
+python -m pytest tests -q     # 235 tests (~5 min)
+python -m src.evaluate        # writes data/evaluation/results.md (~10-15 min)
 python -m src.simulate        # feedback-loop experiment only
+python -m src.heldout         # held-out sentences only
 ```
 
 See [data/evaluation/results.md](data/evaluation/results.md) for the numbers used in the report.
+
+### Testing with real people (sections 11-12 of the results)
+
+1. **Held-out sentences (no app needed, ~10 min each).** Run `python -m src.heldout --template` and send
+   `data/evaluation/heldout_sentences.xlsx` to 5-10 people who did not build the app. They write how they would
+   describe their likes, dislikes and allergies, and what the app should understand (Instructions tab). Put the
+   filled sheets' rows into that one file in `data/evaluation/` (keep the header), then run `python -m src.evaluate`.
+2. **One-week pilot (the app).** Each tester makes a profile (name + PIN), follows the plan for a week, ticks the
+   meals they eat, opens **"📝 Rate this week"** in the "Finish the week" section, then presses **Finish week**.
+   A second week shows whether the plan learned. `python -m src.evaluate` then reports meals eaten per week, swaps,
+   New meal / New day choices, weight entries and the ratings - aggregated, without names (comments go to
+   `pilot_comments.csv` without names).
+3. Tell testers the app is for education only, ask for their OK to use their anonymous answers in the report, and
+   run it on one PC (or the local Docker app) so everyone's data is in the same `data/app.db`.
 
 ## Deploy for free (Hugging Face Spaces)
 
@@ -94,7 +114,7 @@ See [data/evaluation/results.md](data/evaluation/results.md) for the numbers use
 3. Upload the project to the Space (the upload tool stores binary files such as `embeddings.npy` correctly;
    a plain `git push` of binaries is rejected by Hugging Face):
    ```bash
-   hf upload <your-username>/<space-name> . --repo-type space --exclude ".venv/*" --exclude ".git/*" --exclude "data/app.db" --exclude "foods.csv" --exclude "notebooks/*" --exclude "*__pycache__*"
+   hf upload <your-username>/<space-name> . --repo-type space --exclude ".venv/*" --exclude ".git/*" --exclude "data/app.db" --exclude "notebooks/*" --exclude "*__pycache__*"
    ```
 4. The Space builds the `Dockerfile` (about 5-10 minutes) and the app appears at
    `https://huggingface.co/spaces/<your-username>/<space-name>`.
@@ -117,6 +137,12 @@ src/planner.py        Phase 5: weekly meal planner
 src/db.py             Phase 6: SQLite storage
 src/feedback.py       Phase 7: weekly learning loop
 src/simulate.py       Phase 7: simulated users for evaluation
+src/shopping.py       weekly shopping list (raw / dry amounts to buy)
+src/report.py         printable PDF of the week (fpdf2)
+src/nutrients.py      fiber, sodium, calcium... reference values and plan totals
+src/progress.py       weight tracking: expected vs actual weekly change
+src/dishes.py         20 Egyptian dishes as recipes of USDA ingredients
+src/heldout.py        held-out parser evaluation sheet (real people's sentences)
 src/evaluate.py       Phase 8: all evaluation metrics
 tests/                pytest suite
 data/processed/       foods_clean.csv, embeddings, cleaning report

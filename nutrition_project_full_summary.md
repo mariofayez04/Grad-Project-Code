@@ -2,6 +2,8 @@
 
 Everything decided and discussed in this chat, in one place. Sections 1–6 are decisions and reasoning, 7–11 are the build reference, 12–15 are extras (other models, gotchas, report tips, scope control).
 
+> **Current status (2026-10-28):** all 8 phases and 10 extra features are built and tested locally (235 tests pass); evaluation regenerated (section 17.7). Section 16 is the checklist, section 17 the full progress log: what was built, the results, what changed from this plan, and what is left (online deploy + report).
+
 ---
 
 ## 1. Your project at a glance
@@ -371,13 +373,296 @@ Phases 1–6 give you a complete working project. **Phase 7 (taste vector) is th
 
 ## 16. Next steps checklist
 
-- [ ] Download SR Legacy CSV from the USDA page
-- [ ] Paste the Gemini prompt (section 10) into a new Colab session
-- [ ] Phase 1: get `foods.csv` working
-- [ ] Phase 2: calculator tested against an online TDEE calculator
-- [ ] Phase 3: parser tested on at least 10 sample sentences
-- [ ] Phase 4: embeddings saved
-- [ ] Phase 5: a full 7-day plan generating correctly
-- [ ] Phase 6: interface with checkboxes
-- [ ] Phase 7: taste-vector loop (if time allows)
-- [ ] Phase 8: deploy, evaluate, write the report
+The project was built locally in VS Code / Python (not Colab), so the Gemini prompt in section 10 was not used.
+
+- [x] Download SR Legacy CSV from the USDA page (kept outside the project in `..\Dataset\`)
+- [x] Phase 1: clean food table working (`data/processed/foods_clean.csv`, 3,184 foods)
+- [x] Phase 2: calculator tested (unit tests against hand-calculated Mifflin-St Jeor values)
+- [x] Phase 3: parser tested on 32 hand-labelled sentences
+- [x] Phase 4: embeddings saved
+- [x] Phase 5: a full 7-day plan generating correctly
+- [x] Phase 6: interface with checkboxes
+- [x] Phase 7: taste-vector loop
+- [x] Phase 8: evaluation done, Docker image ready
+- [x] Extra: "Swap a food" feature, new dark theme (section 17.3)
+- [x] Extra: private users with name + PIN sign-in (section 17.7)
+- [x] Extras: all 10 features of the roadmap in section 17.7
+- [ ] Phase 8: put the site online on Hugging Face Spaces (needs `hf auth login` with your token first)
+- [ ] Phase 8: write the report
+- [ ] Collect held-out sentences from 5-10 people + a one-week pilot (tools ready, see 17.7 #2)
+
+---
+
+## 17. Progress log
+
+### 17.1 Timeline
+
+| Date | Step |
+|---|---|
+| 2026-10-12 | Phase 0: virtual environment, packages, both models downloaded |
+| 2026-10-12 | Phase 1: USDA data cleaning + allergen tagging |
+| 2026-10-12 | Phase 2: calorie and macro calculator |
+| 2026-10-12 | Phase 3: preference and allergy parser |
+| 2026-10-12 | Phase 4: food embeddings |
+| 2026-10-12 | Phase 5: weekly meal planner |
+| 2026-10-12 | Phase 6: Streamlit web app + SQLite |
+| 2026-10-13 | Phase 7: weekly feedback loop + simulation |
+| 2026-10-13 | Phase 8: evaluation, Dockerfile, README, Docker Compose |
+| 2026-10-27 | Small fixes, "Swap a food" feature, design changes (section 17.3) |
+| 2026-10-27 | Roadmap #1 private users (PIN), #3 shopping list, #5 New meal / New day with before-after choice (section 17.7) |
+| 2026-10-28 | #8 PDF, #11 meals per day, bug fix (PDF downloading at sign-in), #7 extra nutrients, #10 diet modes + nutrient caps, #6 weight tracking, #9 Egyptian dishes, #2 evaluation + real-user tools, dishes in feedback learning |
+| 2026-10-28 | All of the above committed to git (section 17.8) |
+
+### 17.2 What each phase built
+
+**Phase 1: Data** (`src/clean_data.py`, `src/allergens.py`)
+- Joins the raw USDA tables into one row per food: 4 nutrients per 100 g plus one realistic household portion.
+- 7,793 foods → **3,184** kept. Removed: baby/fast/restaurant foods, spices, drinks, brand names, organs, game meat, raw versions of foods eaten cooked, flours, sauces, dry mixes, and foods whose calories don't match their macros.
+- Allergen tags for the 9 groups + gluten, word-boundary matching, with exceptions (eggplant, peanut butter, coconut milk, water chestnut, buckwheat, corn tortillas...). Over-flagging on purpose.
+- Diet flags: vegetarian, pork, alcohol. A `meal_role` per food (protein, carb, vegetable, fruit, fat, dairy, legume, snack, mixed).
+- The old `foods.csv` from an earlier attempt (unreliable allergen tags) was deleted.
+
+**Phase 2: Calculator** (`src/calculator.py`)
+- Mifflin-St Jeor BMR → activity ×1.2 / 1.55 / 1.725 → goal −20% / 0 / +10% → floor 1,500 kcal (men) / 1,200 kcal (women).
+- Macro split from section 8.2. Protein capped at 2.2 g per kg body weight (spare calories go to carbs).
+- BMI warnings (underweight + lose, obese + gain). Daily split: breakfast 25%, lunch 35%, dinner 30%, snack 10%.
+
+**Phase 3: Parser** (`src/parser.py`)
+- FoodBaseBERT-NER **plus** a food-word dictionary find the foods; cue phrases (longest first) label each one block / avoid / prefer, including cues after the food ("shrimp allergy", "gluten-free").
+- Category words expand (dairy, nuts, seafood, gluten...). Vegetarian, vegan, halal and pescatarian are rules, not the model.
+- Safety net: any allergen word after an allergy cue is blocked even if no food was found.
+
+**Phase 4: Embeddings** (`src/embeddings.py`)
+- Descriptions are cleaned (USDA filler removed) and the category added, then encoded with all-MiniLM-L6-v2 → 384 numbers per food, saved in `embeddings.npy`.
+
+**Phase 5: Planner** (`src/planner.py`)
+- Each meal is built from components: lunch / dinner = protein + carb + vegetable + optional cooking oil; breakfast = main + carb + fruit; snack = fruit + extra.
+- Candidates are scored: how well they do their job + closeness to the taste vector + stated likes / dislikes − repeat penalties + a little randomness.
+- The top 5 per component are combined and the grams solved with bounded least squares. Each meal aims at what is still left of the day.
+
+**Phase 6: Web app** (`app.py`, `src/db.py`)
+- Streamlit: profile form, daily targets, "What I understood", 7 day tabs with an "Eaten" checkbox per meal, week overview, CSV download. The user is kept in the URL (`?user=ID`).
+- SQLite (`data/app.db`): users, plans, plan_items, swaps.
+
+**Phase 7: Feedback loop** (`src/feedback.py`, `src/simulate.py`)
+- Taste vector: `normalize(old + 0.3 × mean(eaten) − 0.15 × mean(skipped))`.
+- Food penalties: skipped +0.8, eaten −0.2, older weeks count 0.7× less each week.
+- Family penalty: a food family (e.g. all beef) skipped more than the user's average is pushed down as a whole.
+- Unticked meal = skipped. Cooking oil is ignored (not a taste signal). Swapped-away foods count as skipped (17.3).
+
+**Phase 8: Evaluation and deploy** (`src/evaluate.py`, `Dockerfile`, `compose.yaml`, `README.md`)
+- All numbers in `data/evaluation/results.md` (summary in 17.4).
+- Docker image for Hugging Face Spaces (CPU-only PyTorch, models downloaded at build time). `docker compose up -d --build` runs it locally with `data/` kept on the PC.
+
+### 17.3 Changes on 2026-10-27
+
+Small fixes
+- `scipy==1.18.1` added to `requirements.txt` (the planner imports it directly).
+- Old `foods.csv` deleted; planner description corrected (meals are 2–4 foods); harmless warning in `simulate.py` removed.
+- Docker image: Streamlit file watcher turned off (it filled the logs with a harmless `torchvision` error).
+
+"Swap a food" (new feature, under every meal)
+1. Pick a food of the meal → 3 suggestions that fill the same part of the meal, are close in **embedding space and macro profile**, avoid your allergies, and are sized to keep the same calories.
+2. Suggestions are varied: at most one per base food, no repeated names, nothing already on that day's plan (fixed a "Pasta, cooked" shown twice bug).
+3. **Show more options**: the next 3, up to about 10 pages, then back to the start.
+4. **Type what you'd like** (e.g. "brown rice"): embedding search among foods of the same kind, with a bonus when every typed word is in the name. If nothing is close (score < 0.6) the app says so.
+5. **Learning**: every swap is saved (`swaps` table). When the week is finished, the swapped-away food counts as skipped in the taste vector, food penalties and family penalties, and is listed under "Swapped away" in "What I learned".
+- New code: `component_foods`, `component_of`, `swap_options`, `search_swap`, `servable_foods` (planner); `replace_item`, `user_swaps` (db); `swaps` argument in `food_penalties`, `next_week_inputs`, `week_summary` (feedback).
+
+Design
+- Dark theme (`.streamlit/config.toml` + CSS at the top of `app.py`): **black** background, **dark-gray** meal cards, totals boxes and profile sidebar, **red** buttons, red accents (card top strip, calorie labels, grams).
+- All meal cards have the same height; "Swap a food" and "Eaten" sit on one row at the bottom.
+- Each food shows as: **bold title + grams** (e.g. "Turkey 100 g"), then the details in medium text, then `(kcal : 139), (P : 30), (F : 2), (C : 0)`.
+
+Tests: 128 → **135** (swap variety, typed search, swap learning, swap storage).
+
+### 17.4 Results (from `data/evaluation/results.md`)
+
+| What | Result |
+|---|---|
+| Daily calories vs target | 1.2% mean error, 100% of days within ±10% |
+| Protein / carbs / fat | 3.7% / 2.6% / 3.6% mean error |
+| Allergens served to 20 users with allergies | **0** of 1,803 items |
+| Allergen tagger (32 hand-labelled foods) | 100% precision, 100% recall |
+| Parser, NER + dictionary (32 sentences) | 100% labels correct (NER alone 95.9%, dictionary alone 95.9%) |
+| Embeddings, 5 nearest neighbours with same category | 98.2% (raw USDA text: 89.4%) |
+| Feedback loop, meals eaten (simulated hidden dislikes) | ~80% in week 1 → 98–100% from week 2 (no feedback: stays ~80–85%) |
+| Time to build a week's plan | ~2.2 s |
+
+Limitations to state in the report: the tagger and parser test cases were used while writing the rules (scores are optimistic); allergens are found from food names only; the feedback test uses simulated users. The swap feature is not in the evaluation yet.
+
+### 17.5 How to run
+
+```bash
+.venv\Scripts\python.exe -m streamlit run app.py      # the web app at http://localhost:8501
+.venv\Scripts\python.exe -m pytest tests -q            # 235 tests (~5 min)
+.venv\Scripts\python.exe -m src.evaluate               # regenerates data/evaluation/results.md (~3-5 min)
+docker compose up -d --build                           # same app in Docker
+```
+
+### 17.6 What is left
+
+1. **Put the site online**: run `.venv\Scripts\hf.exe auth login` (paste your Hugging Face Write token), choose private or public, then upload (README, "Deploy for free"). The free Space resets its database when it restarts.
+2. **Write the report**: use sections 5, 6, 14 and 17.4; be clear about what is classical math vs AI.
+3. Optional: a held-out test set written by other people; add the swap feature to the evaluation.
+
+### 17.7 Feature roadmap (started 2026-10-27)
+
+Built one at a time, each reviewed before the next:
+
+| # | Feature | Status |
+|---|---|---|
+| 1 | Private users: name + PIN sign-in | ✅ done |
+| 3 | Shopping list for the week | ✅ done |
+| 5 | Regenerate one meal or one day, compare before / after, learn from the choice | ✅ done |
+| 8 | Printable PDF of the week's plan | ✅ done |
+| 11 | Choose 3, 4 or 5 meals a day | ✅ done |
+| 7 | More nutrients (fiber, sugar, sodium, calcium, iron) | ✅ done |
+| 10 | Diet modes for health conditions (diabetes-friendly, low-salt) | ✅ done |
+| 6 | Weight tracking + targets that follow your weight | ✅ done |
+| 9 | Egyptian dishes (ful, koshari, molokhia, ta'ameya...) | ✅ done |
+| 2 | Real-user evaluation tools (held-out sentences, friends' feedback) + updated evaluation | ✅ done |
+
+**#1 Private users (done)**
+- The sidebar no longer lists everyone's name. Signed out: **Sign in** (name + PIN) or **New user** (profile + PIN, typed twice).
+- PINs are 4–8 digits, stored only as a salted PBKDF2-SHA256 hash (200,000 rounds). After 5 wrong PINs the profile is locked for 5 minutes. A wrong name and a wrong PIN give the same message, so names can't be probed.
+- A new user can't take an existing name any more (before, "New user" with the same name overwrote that person's profile).
+- Reloading keeps you signed in through a signed link (`?user=ID&t=...`, HMAC with a server secret in `data/secret.key`, which git and Docker ignore). Typing `?user=1` alone opens nothing; changing the PIN ends old links. **Sign out** button.
+- Profiles made before PINs (e.g. Marco, Ramez Alex) are asked to create a PIN the first time they sign in. Until then anyone who knows the name could claim them, so each owner should sign in once soon.
+- The database is upgraded automatically (new columns added on start). 7 new tests (142 total).
+
+**#3 Shopping list (done)** (`src/shopping.py`, section "🛒 Shopping list" in the app)
+- Adds up every food of the week and groups it by shop section (meat & poultry, fish, eggs & dairy, bread, grains, beans, vegetables, fruits, nuts, oils), one card per section in the dark style, with a tick box per item.
+- Converts plate weights into what to buy (approximate): cooked rice ×0.35 → dry, pasta/noodles ×0.45, bulgur/couscous/quinoa/barley ×0.4, oats cooked with water ×0.17, cooked beans ×0.4, fresh pasta ×0.8, cooked meat/fish ×1.35 → raw. Canned, cured and smoked foods are bought as they are.
+- Merges variants into one line: all eggs → "Eggs ≈ N eggs", all oils → "Cooking oil ≈ N ml, any kind", "Milk, reduced fat" with and without added vitamins → one line; plate words (cooked, boiled, raw...) are dropped from names.
+- "Leave out meals already eaten" switch for shopping mid-week. Downloads: text list with [ ] boxes, and CSV.
+- 15 new tests (157 total).
+
+**#5 Regenerate a meal or a day, with a before / after choice (done)**
+- Every meal card has **🎲 New meal**; every day has **🎲 New version of this day**. A window shows **Current** and **New** side by side: the meals, the day's totals with each version and the difference from the targets, and a "🎯 closer to your targets" badge. Buttons: **Keep current** / **Use the new one** (closing the window decides nothing).
+- The new version is really different: the current foods are left out (for a whole day also other versions of them, e.g. another cheese), and foods already on that day are not repeated. The rest of the week counts for variety. A new meal aims at the day's target minus the other meals, so the day stays on target (tested within 10%). Allergies and diet rules still apply.
+- **Learning (weekly):** every choice is saved (`choices` table). When the week is finished, the foods of the version you did not keep count as half a skip and the ones you kept as half an eaten meal, in the taste vector, food penalties and family penalties (`CHOICE_WEIGHT = 0.5`; a choice is a softer signal than skipping a meal). Cooking oil is ignored. "What I learned" lists them under "Swapped away or not chosen".
+- **Same week:** a food you swapped away or did not choose is not offered right back in the next new versions (penalty 1.5, and 0.5 for other versions of the same food). The full weekly plan only changes when the week is finished.
+- Planner refactor: the one-day loop is shared by `plan_week`, `replan_meal` and `replan_day` (existing plans unchanged). Card buttons now sit on two rows ("🔄 Swap" + "🎲 New meal", then "Eaten") so they fit narrow windows. `use_container_width` (being removed from Streamlit) replaced by `width="stretch"`.
+- 9 new tests (166 total), including the full app flow: New meal → Use the new one, New day → Keep current.
+
+**#8 Printable PDF (done)** (`src/report.py`, red "🖨️ Download plan (PDF)" button under "Week at a glance")
+- Page 1: name, week, daily targets (four boxes), BMR / TDEE / BMI, warnings, what the parser understood, how to use the sheet.
+- One block per day, two days per A4 page: every meal with its foods (bold name + details), grams, kcal / protein / carbs / fat, an empty `[   ]` box per meal to tick with a pen (meals already ticked in the app print as `[ x ]`), and the day's totals vs the targets.
+- Last pages: the shopping list (same as the app) with a `[   ]` box per item.
+- Printer-friendly: white paper, red headers, light-grey stripes; footer "for education only, not medical advice" + page numbers. About 7 pages, ~30 KB.
+- New dependency `fpdf2==2.8.9` (small, pure Python, no system packages, works in Docker). Built-in fonts cover Latin letters only: emoji and symbols are swapped or dropped, and a name in another script (e.g. Arabic) prints as "you". The PDF is cached in the app, so ticking boxes stays fast.
+- `split_name` (bold title + details) moved from app.py to src/planner.py so the app and the PDF share it. Shopping names now merge regardless of capital letters ("Cheese, Swiss" = "Cheese, swiss").
+- 4 new tests (170 total), checking the text of the PDF: every day, the allergy, the shopping list, pre-ticked meals, non-Latin names.
+
+**#11 Meals per day (done)**
+- New "Meals per day" choice in the profile: **3** (breakfast 30%, lunch 40%, dinner 30%), **4** (unchanged: 25 / 35 / 30 / snack 10%) or **5** (breakfast 25%, morning snack 10%, lunch 30%, afternoon snack 10%, dinner 25%).
+- Meals are shown and planned in time order; with 3 or 5 meals dinner is planned last and corrects the day's small errors (sample week: calories 0.2–0.8% off, protein 0.3–0.4% off).
+- The two snacks use the same rules as before and never repeat a food on the same day. The week view, "Week at a glance", shopping list, swap, New meal / New day, the comparison window and the PDF all follow the plan's own meals ("Morning snack", "Afternoon snack").
+- Saved in the profile (`users.meals_per_day`) and in each plan's targets. Existing profiles and plans were upgraded automatically and keep 4 meals.
+- 11 new tests (181 total), including a 5-meal plan built through the app (35 "Eaten" boxes).
+
+**Bug fix: the PDF downloaded by itself at sign-in (fixed)**
+- Cause: every download button sent its file (PDF, 2 CSVs, shopping text) to the browser on each page load, without a click. Download managers (e.g. Internet Download Manager) and some browser settings catch any `.pdf` the page fetches and save it.
+- Fix: the buttons now get a function instead of the file, so the file is made only when the button is clicked (`on_click="ignore"`: no page reload either). Checked in the browser: after signing in with Enter, no file is fetched. Sign-in is also faster (the PDF isn't built in advance).
+
+**#7 More nutrients (done)** (`src/nutrients.py`, `clean_data.fill_micros`)
+- The food table now has 7 more nutrients per 100 g from USDA: fiber, total sugars, saturated fat, sodium, potassium, calcium, iron (IDs in `config.MICRO_IDS`). Rows and old columns unchanged, so the embeddings stay valid.
+- Missing USDA values are estimated and marked in a new `estimated` column: 0 when the parent macro is ~0 (no carbs -> no sugar / fiber; no fat -> no saturated fat), otherwise the median of the same kind of food (same category + first word, then category), capped at the parent macro. Estimated: sugar 24.1% of foods, fiber 6.8%, saturated fat 2.9%, potassium 0.9%, calcium / iron 0.2%, sodium 1 food (cleaning report).
+- Daily reference values per person (saved with each plan): fiber >= 14 g / 1,000 kcal and saturated fat < 10% of kcal (DGA 2020-2025), sodium <= 2,300 mg, potassium >= 3,400 / 2,600 mg, calcium >= 1,000 mg (1,200 women 51+, men 71+), iron >= 8 mg (18 mg women 19-50) (US National Academies). Sugars are shown without a limit: USDA gives total sugars (incl. fruit and milk), the limits are for added sugars.
+- App: the targets line under "Your daily targets"; a row of nutrient pills under each day's totals (✓ met, ≈ nearly at 90%+, ↓ low, ↑ too high); new section "🧪 Nutrients this week" (daily average, target, days on target). PDF: targets on page 1 and a nutrient line under each day.
+- Finding for the report: without being told, the planner already meets fiber, saturated fat, sodium and potassium on most days, but calcium is often short (sample woman 776 mg / 1,000 mg, 0 of 7 days) and iron is borderline for women (18 mg needed). Making the planner aim for these belongs to #10.
+- 14 new tests (195 total).
+
+**#10 Diet modes + nutrient-aware planning (done)** (`src/nutrients.py`, planner, calculator)
+- Profile "Health focus (optional)", both can be ticked:
+  - **Diabetes-friendly:** carbs <= 40% of calories (the rest goes to fat), total sugars <= 10% of calories, stronger fiber bonus, sugar penalty; sugary foods left out (dried / sweetened / flavoured foods, syrups, sweet baked goods).
+  - **Low-salt / blood pressure (DASH-style):** sodium <= 1,500 mg, stronger potassium and calcium bonus, sodium penalty; foods with > 600 mg sodium per 100 g and cured / pickled / salted foods left out.
+  - A clear note: general guidance, not a treatment; follow your doctor (medicines may need adjusting). Shown in the app and the PDF.
+- **For everyone, nutrient-aware planning:** every food gets a nutrient score added to its ranking (`W_NUT = 1.0`): a bonus for fiber, calcium, iron, potassium it brings above its "fair share" (daily target / daily calories), a penalty for sodium / saturated fat above it.
+- **Pacing:** while a day is planned, a nutrient stops earning a bonus once the day already has enough of it for the meals so far.
+- **Daily caps:** iron 45 mg and calcium 2,500 mg (2,000 mg 51+) - official safe upper limits (NASEM) - fiber at 2x its target (comfort), plus every "max" target (sodium, saturated fat, sugars in diabetes mode). A meal combination that would push the day over a cap gets a heavy penalty (`W_CAP = 20`); the planner aims at 95% of the cap (portion rounding) and a meal may use only its share of the cap + 35% (so breakfast can't use the whole day's iron). Found while testing: even before this feature, fortified cereals / breads gave some days 60+ mg of iron.
+- Swaps, typed search, New meal / New day all respect the modes. The salt you add when cooking is not counted (said in the app).
+- **Tuning (report material)** - 4 people x 2 weeks per setting; days on target out of 7:
+
+| Setting | Macro error | Foods / week | Fiber | Calcium | Iron | Sodium under limit | Sodium avg | Sugar avg |
+|---|---|---|---|---|---|---|---|---|
+| No modes, before (W_NUT 0) | 2.3% | 87 | 3.5 | 2.1 | 5.4 | 4.4 | 2,144 mg | 55 g |
+| No modes, final | 3.2% | 86 | 7.0 | 6.4 | 6.8 | 7.0 | 1,173 mg | 58 g |
+| Diabetes, final | 3.5% | 85 | 7.0 | 4.9 | 6.5 | 7.0 | 1,071 mg | 33 g (was 46) |
+| Low-salt, final | 3.5% | 83 | 7.0 | 6.2 | 6.6 | 7.0 | 475 mg (was 1,764) | 59 g |
+| Both, final | 3.5% | 81 | 7.0 | 4.4 | 6.8 | 7.0 | 393 mg | 33 g |
+
+  W_NUT 2-3 met calcium on slightly more days but cut variety to 60-76 different foods a week, so 1.0 was kept.
+- **Caps (336 planned days, 4 people x 4 settings x 3 weeks):** iron, calcium, sodium, saturated fat over their cap on 0 days (highest iron 44 mg); fiber over its comfort cap on 1.8% of days (at most +10%); sugar (diabetes) 0.6% (at most +4%).
+- Calcium is still the hardest (diabetes mode leaves out flavoured yogurts): 4.4-6.4 of 7 days.
+- Note: `data/evaluation/results.md` was made before #7 / #10; it is regenerated in #2.
+- 13 new tests (208 total).
+
+**#6 Weight tracking (done)** (`src/progress.py`, section "⚖️ Weight progress" at the bottom of the app)
+- Log a weight with a date (no future dates, 30-300 kg); one entry per day - logging again the same day replaces it. New profiles start with their profile weight; existing profiles (Marco, Mario, Ramez Alex) got their profile weight as a first entry automatically. Changing the weight in the profile form also adds an entry.
+- Four numbers: current weight (+ change since the first entry), **expected change per week** on this plan = (calorie target - TDEE) x 7 / 7,700 kcal per kg, **your actual pace** (straight line through the last 4 weeks; needs entries a week apart), BMI.
+- Chart (Altair): your weights (red line + points) next to the weight the plan should give (grey dashed line).
+- **Targets follow the weight:** the latest entry becomes the profile weight, so next week's plan (Finish week) uses it. If it changes the calorie target by 50+ kcal, the app shows the new target and a "🔄 Rebuild this week with my new targets" button.
+- **Safety:** a warning when losing faster than ~1% of body weight a week, or gaining faster than ~0.5% (common clinical guidance).
+- New table `weights`; `src/db.py`: `log_weight`, `weight_history`, `delete_weight` (a typo can be fixed by logging the same date again).
+- 8 new tests (216 total), incl. the app flow: log 88 kg -> profile updated -> new-target message -> rebuild -> week 2 with the new calorie target.
+
+**#9 Egyptian dishes (done)** (`src/dishes.py`, data step 7 in `clean_data.py`, planner `DISH_TEMPLATES`)
+- 20 dishes as recipes of USDA SR Legacy ingredients (one serving "as served", grams per ingredient, no added salt):
+  - breakfast: ful medames, ta'ameya, shakshuka, gebna with tomatoes, bessara;
+  - lunch / dinner: koshari, molokhia with rice and chicken, mahshi, fattah, bamya with rice, kofta, hawawshi, sayadiya, fasolia with rice, shorbet ads (lentil soup), mesaqa'a, torly, ferakh bel roz;
+  - snacks: halabessa, roz bel laban. Desserts (basbousa, konafa, om ali) left out on purpose.
+- Each dish's nutrients per 100 g = gram-weighted sum of its ingredients (incl. the 7 extra nutrients); allergens and vegetarian / pork / alcohol flags come from the ingredients with the same deterministic rules (e.g. koshari -> wheat, ta'ameya -> sesame, molokhia -> milk from ghee, halabessa not vegetarian because of chicken broth). Ingredients come from the whole USDA table (cumin, lemon juice and broth are not in foods_clean). Dishes are added to foods_clean.csv (category "Egyptian Dishes", meal_role "dish", ids from 9,000,001) and the recipes to dish_ingredients.csv; embeddings rebuilt (3,204 foods).
+- Planner: a meal can also be **one dish + optional sides** (bread / rice, salad, extra protein, fruit; 0 g = not needed). For every meal both kinds are tried and the better fit wins. Breakfast dishes up to 350 g (room for bread), lunch / dinner up to 650 g, snacks up to 300 g.
+- Profile setting "🥘 Egyptian dishes": **often** (~12 dish meals a week) / **sometimes** (default, ~7 a week = about one a day) / **never**. Tuned: without a handicap dish meals won 16-20 of 28 meals (the optional sides make them flexible), so the dish meal's value gets -0.7 (sometimes) or -0.3 (often). Macro error unchanged (~3%).
+- Everything follows: allergies and diets (tested: no wheat / sesame dishes when allergic, only vegetarian dishes for vegetarians), diet modes, "I love koshari", Swap (a dish swaps for another dish of that meal), typed search, New meal / New day.
+- App: dish cards show the Arabic name (kept in place with `<bdi>`) and the ingredients of that portion in gold ("fava beans 240 g, spinach 55 g, ..."); the PDF prints the ingredients too. Shopping list: a dish is split into its ingredients (scaled to the portion), with shop-friendly names ("Fava beans (ful)", "Molokhia leaves", "Tahini") and a new "🧂 Herbs, spices & sauces" section.
+- Also fixed on the way: a portion at its maximum wasn't rounded to 5 g (e.g. 493.6875 g); "sweet potato leaves" could be served as a carb.
+- Speed: a week takes ~3.2 s (was ~2.1 s) because each meal tries two kinds; dish sides keep only their 2 best candidates (same accuracy, 25% faster than 3).
+- Existing profiles got "sometimes": their next plans include about one Egyptian dish a day (set "never" to switch off).
+- 11 new tests (227 total).
+
+**#2 Evaluation: regenerated + real-user tools (done)**
+- `python -m src.evaluate` (~10-15 min) regenerates `data/evaluation/results.md` with the final planner and 5 new sections: 8 nutrients and safety caps (nutrient-aware vs macros only), 9 diet modes, 10 Egyptian dishes, 11 held-out sentences, 12 real-user pilot. CSVs for each next to it.
+- Headline numbers (results.md, 2026-10-28):
+  - Macro adherence (30 users x 7 days): calories 2.3% mean error (98.1% of days within ±10%), protein 4.3% (92.9%), carbs 3.0%, fat 4.8%.
+  - Allergy safety: 20 users with 1-3 allergies, 1,652 items incl. 145 Egyptian dish servings -> **0** items with a stated allergen; parser found 100% of the allergies.
+  - Nutrients, nutrient-aware vs macros only (84 days): days on target - calcium 38% -> 82%, fiber 55% -> 98%, iron 68% -> 98%, potassium 69% -> 98%, sodium 54% -> 100%; days over a cap - sodium 46% -> 0%, iron 1.2% -> 0%, calcium 2.4% -> 0%.
+  - Diet modes: low-salt 530 mg sodium / day, diabetes-friendly 32 g sugars (limit met 100% of days) and carbs 40.5% of kcal; 0 left-out foods served.
+  - Egyptian dishes: sometimes 6.2 dish meals / week (5.4 different), often 10.5 (8.9 different), never 0.
+  - Feedback loop (simulated hidden dislikes): meals eaten with feedback 77-87% in week 1 -> 96-100% from week 2 (after the fix below); without feedback no improvement.
+  - Speed: 3.2 s per week (max 6.2 s).
+- **Honest trade-offs for the report:**
+  - Macro accuracy is a little lower than in the first evaluation (calories 1.2% -> 2.3%, protein days within ±10% 97.6% -> 92.9%): the planner now also chases nutrients and keeps under safety caps (same users: 3.1% macros only vs 4.2% nutrient-aware). Much better nutrition for a small macro cost.
+  - (Fixed the same day - see "Dishes count their ingredients in feedback learning" below.) Learning from skipped meals had become a bit slower once dishes were added, because a dish's family was only the dish itself.
+- **Real-user tools:**
+  - Held-out sentences: `python -m src.heldout --template` makes `data/evaluation/heldout_sentences.xlsx` (Instructions tab + 3 grey examples). Volunteers who didn't build the app write sentences + what the app should understand (never / less often / more often). Scored per label (recall, precision) and allergy recall (safety) - section 11.
+  - In the app: "📝 Rate this week" (optional) in "Finish the week": liked the meals, realistic portions, easy to follow (1-5), would keep using it (yes / maybe / no), comment. Table `surveys`, one per week.
+  - Pilot summary (section 12) from `data/app.db`, without names: finished weeks, meals eaten per week of use, swaps, New meal / day choices, weight entries, ratings; comments exported without names. How to run the test with people: README "Testing with real people".
+- Small fixes: "-0.00 kg / week" on maintain now shows 0.00; "by 1 people" -> "by 1 person".
+- 5 new tests (232 total).
+
+**Follow-up: dishes count their ingredients in feedback learning (done)** (`src/feedback.py`)
+- `food_families`: a food belongs to its own family (base name, e.g. "beef"); an Egyptian dish also to the families of its main ingredients - at least 10% of the serving, ignoring oils, broth, spices (`MAIN_INGREDIENT_SHARE`, `NEUTRAL_CATEGORIES`). E.g. bamya -> beef, okra, rice; sayadiya -> fish; shakshuka -> egg; koshari -> lentils, pasta, rice.
+- Skipping a dish now counts against its ingredients' families, and a family skipped more than the user's average now pushes down the dishes made with it too (a disliked beef no longer comes back hidden in bamya, kofta or hawawshi). The "only more than your usual skip rate" rule still protects families like rice.
+- Simulation (section 6 of results.md, regenerated), with feedback, before -> after:
+
+| Hidden dislike | Meals eaten week 2 / 3 / 4 | Disliked foods served week 2 / 3 / 4 |
+|---|---|---|
+| beef & lamb | 92.9 / 97.6 / 97.6% -> **96.4 / 100 / 98.8%** | 2.0 / 0.7 / 0.7 -> **1.0 / 0.0 / 0.3** |
+| eggs & cottage cheese | 92.9 / 95.3 / 94.1% -> **96.4 / 96.4 / 98.8%** | 2.0 / 1.3 / 1.7 -> **1.0 / 1.0 / 0.3** |
+| fish & seafood | 98.8 / 100 / 100% -> **100 / 100 / 100%** | 0.3 / 0.0 / 0.0 -> **0.0 / 0.0 / 0.0** |
+
+  ("No feedback" rows unchanged.)
+- 3 new tests (235 total).
+
+**Roadmap complete (2026-10-28).** Still open: put the site online (needs `hf auth login`), collect held-out sentences + a one-week pilot with 5-10 people, write the report.
+
+### 17.8 Saved to git (2026-10-28)
+
+All the work of 2026-10-27 and 2026-10-28 (sections 17.3 and 17.7) is committed in one commit on the branch `feature-roadmap` (made from `main`), so `main` still holds the Phase 1-8 version until it is merged. Not pushed to GitHub.
+- Merge into `main` when happy: `git checkout main` then `git merge feature-roadmap`; push with `git push` when you want it on GitHub.
+- Not in git on purpose (`.gitignore`): `data/app.db` (people's profiles and plans), `data/secret.key` (sign-in link secret), `data/plan_demo.pdf` (demo output), `.venv/`.
+- Before committing, a test was found writing its fake survey comment into `data/evaluation/pilot_comments.csv`; the test now writes to a temporary folder and the file was removed.
+- 235 tests pass at this commit.

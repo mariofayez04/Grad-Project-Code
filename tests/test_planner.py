@@ -9,7 +9,9 @@ from src.calculator import UserProfile, calculate_targets
 from src.config import EMBEDDINGS, FOODS_CLEAN
 from src.embeddings import FoodEmbeddings
 from src.parser import apply_to_foods, parse_preferences
-from src.planner import DAYS, MealPlanner, generate_week_plan, solve_grams, suggest_substitutes
+from src.planner import (DAYS, MAIN_CARB, MAIN_PROTEIN, MealPlanner, component_foods, generate_week_plan, search_swap,
+                         solve_grams,
+                         suggest_substitutes, swap_options)
 
 pytestmark = pytest.mark.skipif(not EMBEDDINGS.exists(), reason="run `python -m src.embeddings` first")
 
@@ -109,3 +111,42 @@ def test_substitutes_same_role(foods, emb):
     subs = suggest_substitutes(chicken, allowed, emb, k=5)
     assert len(subs) == 5 and (subs["meal_role"] == "protein").all()
     assert not subs["allergens"].fillna("").str.contains("fish").any()
+
+
+def test_swap_options_fit_the_meal(foods, emb):
+    """A swapped lunch protein is another lunch protein, allergy-safe, not already in the meal, same calories."""
+    allowed, _ = apply_to_foods(foods, parse_preferences("allergic to fish"))
+    chicken = foods.loc[foods["description"].str.contains(r"^Chicken, broiler.*breast.*grilled"), "fdc_id"].iloc[0]
+    opts = swap_options(chicken, "lunch", 300.0, allowed, emb, exclude_bases={"turkey"}, k=3)
+    assert len(opts) == 3
+    lunch_proteins = set(component_foods(allowed, MAIN_PROTEIN)["fdc_id"])
+    by_id = foods.set_index("fdc_id")
+    for item in opts:
+        assert item.fdc_id in lunch_proteins and item.fdc_id != chicken
+        assert by_id.loc[item.fdc_id, "base_name"] != "turkey"
+        assert "fish" not in str(by_id.loc[item.fdc_id, "allergens"])
+        assert abs(item.calories - 300) < 40  # grams rounded to 5 g
+
+
+def test_swap_options_are_varied(foods, emb):
+    """One suggestion per base food and no two with the same shown name (the 'Pasta, cooked' twice bug)."""
+    allowed, _ = apply_to_foods(foods, parse_preferences(""))
+    bread = foods.loc[foods["description"].str.contains(r"^Bread, white.*toasted"), "fdc_id"].iloc[0]
+    opts = swap_options(bread, "lunch", 276.0, allowed, emb)
+    names = [o.name for o in opts]
+    bases = foods.set_index("fdc_id").loc[[o.fdc_id for o in opts], "base_name"]
+    assert len(opts) > 6 and len(set(names)) == len(names) and bases.is_unique
+    assert set(bases) & {"rice", "pasta", "potatoes"}
+
+
+def test_search_swap_finds_typed_food(foods, emb):
+    allowed, _ = apply_to_foods(foods, parse_preferences("allergic to wheat"))
+    bread = foods.loc[foods["description"].str.contains(r"^Bread, white.*toasted"), "fdc_id"].iloc[0]
+    items, best = search_swap("brown rice", bread, "lunch", 276.0, allowed, emb)
+    assert items[0].name.startswith("Rice, brown") and best > 0.6
+    assert abs(items[0].calories - 276) < 40
+    carbs = set(component_foods(foods, MAIN_CARB)["meal_role"])
+    by_id = foods.set_index("fdc_id")
+    assert all(by_id.loc[i.fdc_id, "meal_role"] in carbs and "wheat" not in str(by_id.loc[i.fdc_id, "allergens"]) for i in items)
+    _, low = search_swap("chicken", bread, "lunch", 276.0, allowed, emb)  # not a carb: weak match
+    assert low < 0.6

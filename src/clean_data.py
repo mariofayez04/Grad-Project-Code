@@ -6,6 +6,8 @@ Steps
  3. Remove foods that don't belong in a normal meal plan (categories, brands, raw meat, organs, mixes...).
  4. Tag allergens and diet flags (deterministic, see allergens.py).
  5. Assign a meal_role used by the planner (protein / carb / vegetable / ...).
+ 6. Extra nutrients (fiber, sugars, saturated fat, sodium, potassium, calcium, iron); missing values estimated.
+ 7. Egyptian dishes (src/dishes.py): recipes of USDA ingredients added as foods; recipes saved for the shopping list.
 
 Run:  python -m src.clean_data
 """
@@ -14,7 +16,8 @@ import re
 import pandas as pd
 
 from src.allergens import ALLERGEN_GROUPS, diet_flags, tag_allergens
-from src.config import FOODS_CLEAN, NUTRIENT_IDS, PROCESSED_DIR, USDA_DIR
+from src.config import DISH_INGREDIENTS, FOODS_CLEAN, MICRO_IDS, NUTRIENT_IDS, PROCESSED_DIR, USDA_DIR
+from src.dishes import build_dishes
 
 DROP_CATEGORIES = {
     "Baby Foods", "Fast Foods", "Restaurant Foods", "American Indian/Alaska Native Foods",
@@ -79,15 +82,16 @@ def load(name, **kw):
 
 
 def build_base():
-    """Steps 1 + 2: one row per food with macros per 100 g and a default portion."""
+    """Steps 1 + 2: one row per food with macros (and extra nutrients) per 100 g and a default portion."""
     food = load("food", usecols=["fdc_id", "description", "food_category_id"])
     cat = load("food_category", usecols=["id", "description"]).rename(columns={"id": "food_category_id", "description": "food_category"})
     df = food.merge(cat, on="food_category_id", how="left").drop(columns="food_category_id")
 
     fn = load("food_nutrient", usecols=["fdc_id", "nutrient_id", "amount"])
-    fn = fn[fn["nutrient_id"].isin(NUTRIENT_IDS.values())]
+    ids = {**NUTRIENT_IDS, **MICRO_IDS}
+    fn = fn[fn["nutrient_id"].isin(ids.values())]
     macros = fn.pivot_table(index="fdc_id", columns="nutrient_id", values="amount", aggfunc="first")
-    macros = macros.rename(columns={v: k for k, v in NUTRIENT_IDS.items()}).reset_index()
+    macros = macros.rename(columns={v: k for k, v in ids.items()}).reset_index()
     df = df.merge(macros, on="fdc_id", how="left")
 
     portions = load("food_portion", usecols=["fdc_id", "seq_num", "amount", "modifier", "gram_weight"])
@@ -159,10 +163,47 @@ def meal_role(row):
     return "mixed"  # Meals/Entrees, Soups
 
 
+# Each extra nutrient is part of a macro, so it can't be larger than it (and is 0 when the macro is ~0).
+MICRO_PARENT = {"fiber_g": "carbs_g", "sugar_g": "carbs_g", "sat_fat_g": "fat_g"}
+
+
+def fill_micros(df, log):
+    """Step 6: estimate missing extra nutrients, and record which ones were estimated (column `estimated`).
+      1. fiber / sugar with carbs <= 0.5 g, saturated fat with fat <= 0.5 g  ->  0 (they are part of that macro)
+      2. otherwise the median of foods of the same kind (same category + first word, e.g. other bagels),
+         then of the same category, capped at the parent macro (sugar + fiber can't exceed the carbs)."""
+    df = df.copy()
+    estimated = pd.Series([[] for _ in range(len(df))], index=df.index)
+    log.append("\nExtra nutrients - values missing in USDA and estimated:")
+    for col in MICRO_IDS:
+        missing = df[col].isna()
+        parent = MICRO_PARENT.get(col)
+        if parent:
+            df.loc[missing & (df[parent] <= 0.5), col] = 0.0
+        kind = df["description"].str.split(",").str[0].str.strip().str.lower()
+        for keys in ([df["food_category"], kind], [df["food_category"]]):
+            still = df[col].isna()
+            if not still.any():
+                break
+            df.loc[still, col] = df.groupby(keys)[col].transform("median")[still]
+        df[col] = df[col].fillna(df[col].median())  # last resort (nothing similar has a value)
+        if parent:
+            df[col] = df[col].clip(upper=df[parent])
+        for i in df.index[missing]:
+            estimated[i].append(col)
+        log.append(f"  - {col:<14} {int(missing.sum()):>5} of {len(df)} ({missing.mean():.1%})")
+    if "sugar_g" in df and "fiber_g" in df:  # together they still fit in the carbs
+        over = df["sugar_g"] + df["fiber_g"] - df["carbs_g"]
+        fix = (over > 0) & df.index.isin([i for i in df.index if "sugar_g" in estimated[i]])
+        df.loc[fix, "sugar_g"] = (df.loc[fix, "sugar_g"] - over[fix]).clip(lower=0)
+    df["estimated"] = estimated.map("|".join)
+    return df
+
+
 def main():
     log = []
-    df = build_base()
-    df = filter_foods(df, log)
+    base = build_base()
+    df = filter_foods(base, log)
 
     df["allergens"] = [tag_allergens(d, c) for d, c in zip(df["description"], df["food_category"])]
     df["is_allergen_free"] = df["allergens"].map(lambda a: len(a) == 0)
@@ -171,14 +212,23 @@ def main():
     df["allergens"] = df["allergens"].map("|".join)
     df["meal_role"] = df.apply(meal_role, axis=1)
     df["base_name"] = df["description"].str.split(",").str[0].str.strip().str.lower()
+    df = fill_micros(df, log)
+
+    # Step 7: dish ingredients may be foods that aren't served alone (cumin, lemon juice, broth...), so they come
+    # from the whole USDA table.
+    ingredients = fill_micros(base[base[["calories", "protein_g", "carbs_g", "fat_g"]].notna().all(axis=1)], [])
+    dishes, recipes = build_dishes(ingredients, MICRO_IDS, tag_allergens, diet_flags)
+    df = pd.concat([df, dishes], ignore_index=True)
+    log.append(f"\nEgyptian dishes added: {len(dishes)} ({', '.join(d.split(',')[0] for d in dishes['description'])})")
 
     cols = ["fdc_id", "description", "food_category", "meal_role", "base_name", "calories", "protein_g", "carbs_g",
-            "fat_g", "portion_desc", "portion_g", "allergens", "is_allergen_free", "is_vegetarian", "contains_pork",
-            "contains_alcohol"]
+            "fat_g", *MICRO_IDS, "estimated", "portion_desc", "portion_g", "allergens", "is_allergen_free",
+            "is_vegetarian", "contains_pork", "contains_alcohol"]
     df = df[cols].sort_values(["food_category", "description"]).reset_index(drop=True)
 
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(FOODS_CLEAN, index=False)
+    recipes.to_csv(DISH_INGREDIENTS, index=False)
 
     log.append("\nMeal roles:\n" + df["meal_role"].value_counts().to_string())
     log.append("\nCategories kept:\n" + df["food_category"].value_counts().to_string())

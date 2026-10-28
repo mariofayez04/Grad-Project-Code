@@ -26,11 +26,20 @@ MACRO_SPLIT = {
 }
 KCAL_PER_GRAM = {"protein": 4, "carbs": 4, "fat": 9}
 MAX_PROTEIN_G_PER_KG = 2.2  # upper end of evidence-based intake for active adults
+DIABETES_MAX_CARBS = 0.40   # diabetes-friendly mode: carbs share capped, the rest goes to fat (mostly unsaturated)
 
 CALORIE_FLOOR = {"male": 1500, "female": 1200}
 
-# How the daily target is spread across meals (used by the planner in Phase 5).
-MEAL_SPLIT = {"breakfast": 0.25, "lunch": 0.35, "dinner": 0.30, "snack": 0.10}
+# How the daily target is spread across meals (used by the planner in Phase 5), for 3, 4 or 5 meals a day.
+# Key order = the order the meals are shown and planned; the last one also corrects the day's small errors.
+MEAL_SPLITS = {
+    3: {"breakfast": 0.30, "lunch": 0.40, "dinner": 0.30},
+    4: {"breakfast": 0.25, "lunch": 0.35, "dinner": 0.30, "snack": 0.10},
+    5: {"breakfast": 0.25, "morning_snack": 0.10, "lunch": 0.30, "snack": 0.10, "dinner": 0.25},
+}
+MEALS_LABELS = {3: "3 meals (breakfast, lunch, dinner)", 4: "4 meals (+ a snack)", 5: "5 meals (+ two snacks)"}
+DEFAULT_MEALS = 4
+MEAL_SPLIT = MEAL_SPLITS[DEFAULT_MEALS]
 
 LIMITS = {"age": (18, 100), "weight_kg": (30, 300), "height_cm": (120, 230)}
 
@@ -45,6 +54,9 @@ class UserProfile:
     activity_level: int  # 1, 2, 3
     goal: str          # "maintain" / "lose" / "gain"
     preferences_text: str = ""
+    meals_per_day: int = DEFAULT_MEALS  # 3, 4 or 5
+    health_modes: str = ""              # "", "diabetes", "low_sodium" or "diabetes|low_sodium" (Feature #10)
+    egyptian_dishes: str = "sometimes"  # "often" / "sometimes" / "never" (Feature #9)
 
 
 @dataclass
@@ -58,6 +70,10 @@ class NutritionTargets:
     bmi: float
     floor_applied: bool = False
     warnings: list = field(default_factory=list)
+    meals_per_day: int = DEFAULT_MEALS
+    micros: dict = field(default_factory=dict)  # fiber, sodium, calcium... reference values (src/nutrients.py)
+    health_modes: str = ""
+    egyptian_dishes: str = "sometimes"
 
     def per_meal(self):
         """Calorie and macro targets for each meal slot."""
@@ -68,8 +84,13 @@ class NutritionTargets:
                 "carbs_g": round(self.carbs_g * share),
                 "fat_g": round(self.fat_g * share),
             }
-            for meal, share in MEAL_SPLIT.items()
+            for meal, share in meal_split(self.meals_per_day).items()
         }
+
+
+def meal_split(meals_per_day=DEFAULT_MEALS):
+    """{slot: share of the day} for 3, 4 or 5 meals (a saved plan without the setting had 4)."""
+    return MEAL_SPLITS[int(meals_per_day or DEFAULT_MEALS)]
 
 
 def normalize_sex(sex):
@@ -96,6 +117,14 @@ def validate(profile):
             raise ValueError(f"{attr} must be between {lo} and {hi}, got {value}")
     if profile.activity_level not in ACTIVITY_MULTIPLIERS:
         raise ValueError(f"activity_level must be 1, 2 or 3, got {profile.activity_level}")
+    if profile.meals_per_day not in MEAL_SPLITS:
+        raise ValueError(f"meals_per_day must be 3, 4 or 5, got {profile.meals_per_day}")
+    from src.nutrients import HEALTH_MODES
+    unknown = {m for m in (profile.health_modes or "").split("|") if m} - set(HEALTH_MODES)
+    if unknown:
+        raise ValueError(f"unknown health mode(s): {sorted(unknown)}")
+    if (profile.egyptian_dishes or "sometimes") not in ("often", "sometimes", "never"):
+        raise ValueError(f"egyptian_dishes must be often, sometimes or never, got {profile.egyptian_dishes!r}")
 
 
 def calculate_bmr(sex, age, weight_kg, height_cm):
@@ -118,17 +147,22 @@ def apply_floor(calories, sex):
     return (floor, True) if calories < floor else (calories, False)
 
 
-def macro_split(calories, goal, weight_kg=None):
+def macro_split(calories, goal, weight_kg=None, diabetes=False):
     """Convert a calorie target into grams of protein / carbs / fat.
 
     If weight_kg is given, protein is capped at MAX_PROTEIN_G_PER_KG and the spare calories go to carbs.
+    diabetes=True caps carbs at DIABETES_MAX_CARBS of calories and gives the rest to fat.
     """
-    split = MACRO_SPLIT[normalize_goal(goal)]
+    split = dict(MACRO_SPLIT[normalize_goal(goal)])
+    if diabetes and split["carbs"] > DIABETES_MAX_CARBS:
+        split["fat"] += split["carbs"] - DIABETES_MAX_CARBS
+        split["carbs"] = DIABETES_MAX_CARBS
     grams = {m: calories * share / KCAL_PER_GRAM[m] for m, share in split.items()}
     if weight_kg is not None:
         cap = MAX_PROTEIN_G_PER_KG * weight_kg
         if grams["protein"] > cap:
-            grams["carbs"] += (grams["protein"] - cap) * KCAL_PER_GRAM["protein"] / KCAL_PER_GRAM["carbs"]
+            spare = "fat" if diabetes else "carbs"
+            grams[spare] += (grams["protein"] - cap) * KCAL_PER_GRAM["protein"] / KCAL_PER_GRAM[spare]
             grams["protein"] = cap
     return {f"{m}_g": round(g) for m, g in grams.items()}
 
@@ -147,7 +181,8 @@ def calculate_targets(profile):
     tdee = apply_activity(bmr, profile.activity_level)
     calories, floor_applied = apply_floor(adjust_for_goal(tdee, profile.goal), profile.sex)
     calories = round(calories)
-    macros = macro_split(calories, profile.goal, profile.weight_kg)
+    modes = profile.health_modes or ""
+    macros = macro_split(calories, profile.goal, profile.weight_kg, diabetes="diabetes" in modes.split("|"))
     bmi = calculate_bmi(profile.weight_kg, profile.height_cm)
 
     warnings = []
@@ -158,8 +193,14 @@ def calculate_targets(profile):
     if bmi >= 30 and profile.goal == "gain":
         warnings.append(f"Your BMI is {bmi:.1f}. Please consult a doctor before a calorie-surplus plan.")
 
+    from src.nutrients import micro_targets
+    if modes:
+        warnings.append("Diet modes are general guidance, not a treatment plan. With diabetes or high blood pressure, "
+                        "follow your doctor or dietitian - medicines may need adjusting when your diet changes.")
     return NutritionTargets(bmr=round(bmr, 1), tdee=round(tdee, 1), calories=calories, bmi=round(bmi, 1),
-                            floor_applied=floor_applied, warnings=warnings, **macros)
+                            floor_applied=floor_applied, warnings=warnings, meals_per_day=int(profile.meals_per_day),
+                            micros=micro_targets(profile.sex, profile.age, calories, modes), health_modes=modes,
+                            egyptian_dishes=profile.egyptian_dishes or "sometimes", **macros)
 
 
 if __name__ == "__main__":

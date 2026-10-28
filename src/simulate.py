@@ -20,9 +20,9 @@ from src.planner import MealPlanner, taste_from_preferences
 
 # Hidden dislikes for the experiment (regex on the food name).
 SCENARIOS = {
-    "dislikes fish & seafood": r"\b(fish|salmon|tuna|tilapia|cod|sardines?|mackerel|trout|crustaceans|mollusks|shrimp)\b",
-    "dislikes beef & lamb": r"\b(beef|lamb|veal)\b",
-    "dislikes eggs & cottage cheese": r"\b(egg|eggs|cottage)\b",
+    "dislikes fish & seafood": r"\b(?:fish|salmon|tuna|tilapia|cod|sardines?|mackerel|trout|crustaceans|mollusks|shrimp)\b",
+    "dislikes beef & lamb": r"\b(?:beef|lamb|veal)\b",
+    "dislikes eggs & cottage cheese": r"\b(?:egg|eggs|cottage)\b",
 }
 
 

@@ -1,0 +1,7 @@
+# Dark theme: black background, dark-gray panels (sidebar, meal cards), red buttons. Extra styling is in app.py CSS.
+[theme]
+base = "dark"
+primaryColor = "#E63946"
+backgroundColor = "#000000"
+secondaryBackgroundColor = "#1E1E1E"
+textColor = "#F5F5F5"

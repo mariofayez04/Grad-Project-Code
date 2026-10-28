@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 data/app.db
+data/secret.key
+data/plan_demo.pdf
