@@ -49,11 +49,11 @@ MEALS_SHORT = {3: "3 meals", 4: "4 meals", 5: "5 meals"}
 MEALS_NOTES = {3: "Breakfast, lunch, dinner", 4: "Plus a snack", 5: "Plus two snacks"}
 MODE_SHORT = {"diabetes": ("Diabetes-friendly", "Less sugar, more fiber, carbs at most 40%"),
               "low_sodium": ("Low-salt / blood pressure", "Sodium at most 1,500 mg, DASH-style")}
-MACRO_COLORS = {"protein_g": "#2E6A8E", "carbs_g": "#D98A3D", "fat_g": "#8C7BC0"}
+MACRO_COLORS = {"protein_g": "var(--protein)", "carbs_g": "var(--carbs)", "fat_g": "var(--fat)"}
 # status -> (words, dot colour, chip background, chip text)
-STATUS = {"ok": ("On target", "#2F7D55", "#E6F0EA", "#1A4D3D"), "close": ("Close", "#C98A1B", "#FBF1DC", "#6E4A0B"),
-          "low": ("A little under", "#B4532A", "#F8EDE6", "#7A3A1C"), "high": ("A little over", "#B4532A", "#F8EDE6", "#7A3A1C"),
-          "info": ("No limit", "#9AA59F", "#EEF1ED", "#3A4641")}
+STATUS = {"ok": ("On target", "var(--ok)", "var(--green-soft)", "var(--green-ink)"), "close": ("Close", "var(--close)", "var(--close-bg)", "var(--close-ink)"),
+          "low": ("A little under", "var(--off)", "var(--never-bg)", "var(--never-ink)"), "high": ("A little over", "var(--off)", "var(--never-bg)", "var(--never-ink)"),
+          "info": ("No limit", "var(--info)", "var(--line2)", "var(--ink2)")}
 
 # Stroke icons (24 x 24), drawn in the text colour
 ICONS = {
@@ -72,7 +72,12 @@ SLOT_SVG = {"breakfast": "sun", "morning_snack": "apple", "lunch": "bowl", "snac
 CSS = """
 <style>
 :root { --card: #FFFFFF; --line: #E3E8E1; --line2: #EEF1ED; --ink: #15201C; --ink2: #3A4641; --muted: #5B6863;
-        --green: #1E5B48; --green-soft: #E6F0EA; --mint: #BFD8C9; --wash: #F7F9F6;
+        --muted2: #4A5852; --faint: #6A7671; --green: #1E5B48; --accent-bg: #1E5B48; --onaccent: #FFFFFF; --green-soft: #E6F0EA;
+        --green-ink: #1A4D3D; --mint: #BFD8C9; --wash: #F7F9F6; --select-bg: #F3F8F5; --btn-line: #D5DDD3;
+        --never-bg: #F8EDE6; --never-ink: #7A3A1C; --never-icon: #9A4A26; --blue-bg: #EAF1F6; --close-bg: #FBF1DC;
+        --close-ink: #6E4A0B; --protein: #2E6A8E; --carbs: #D98A3D; --fat: #8C7BC0; --protein-ink: #1F4E6B;
+        --carbs-ink: #8A4F12; --fat-ink: #5C4B8A; --ar: #8A5A12; --recipe: #7A5410; --strike: #7C8782; --far: #8A4A26;
+        --ok: #2F7D55; --close: #C98A1B; --off: #B4532A; --info: #9AA59F; --shadow: rgba(21,32,28,.12);
         --heading: 'Schibsted Grotesk', 'Hanken Grotesk', sans-serif; }
 [data-testid="stMainBlockContainer"] { max-width: 1240px; padding-top: 1.25rem; padding-bottom: 2.5rem; }
 [data-testid="stHeader"] { background: transparent; }
@@ -85,9 +90,9 @@ CSS = """
 [class*="st-key-card_"] h3, [class*="st-key-card_"] h2 { padding-top: 0; font-size: 1.4rem; }
 /* Buttons: primary green (theme), secondary white with a soft border */
 button[data-testid^="stBaseButton-secondary"], [data-testid="stPopoverButton"] {
-        background: #FFFFFF; border: 1px solid #D5DDD3; color: var(--ink); font-weight: 600; min-height: 42px; }
+        background: var(--card); border: 1px solid var(--btn-line); color: var(--ink); font-weight: 600; min-height: 42px; }
 button[data-testid^="stBaseButton-secondary"]:hover, [data-testid="stPopoverButton"]:hover {
-        background: #FFFFFF; border-color: var(--green); color: var(--green); }
+        background: var(--card); border-color: var(--green); color: var(--green); }
 button[data-testid^="stBaseButton-primary"] { font-weight: 600; min-height: 44px; }
 button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight: 600; }
 /* Top navigation */
@@ -105,7 +110,7 @@ button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight:
 .st-key-account_mode [data-testid="stRadioOption"] { width: 100%; margin: 0; justify-content: center; border-radius: 9px;
         min-height: 40px; padding: 0 10px; display: flex; align-items: center; }
 .st-key-account_mode [data-testid="stRadioOption"] > div > div:first-child { display: none; }
-.st-key-account_mode [data-testid="stRadioOption"][data-selected="true"] { background: #FFFFFF; box-shadow: 0 1px 2px rgba(21,32,28,.12); }
+.st-key-account_mode [data-testid="stRadioOption"][data-selected="true"] { background: var(--card); box-shadow: 0 1px 2px rgba(21,32,28,.12); }
 .st-key-account_mode [data-testid="stRadioOption"][data-selected="true"] p { font-weight: 600; }
 /* Profile choices drawn as cards */
 [class*="st-key-pf_"] [role="radiogroup"] { gap: 8px; flex-wrap: wrap; width: 100%; }
@@ -113,60 +118,60 @@ button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight:
         padding: 20px 22px; }
 .st-key-card_auth [class*="st-key-pfsec_"] { border-top: 1px solid var(--line2); padding-top: 14px; }
 [class*="st-key-pf_"] [role="radiogroup"] > div { flex: 1 1 130px; margin: 0; display: flex; flex-direction: column;
-        justify-content: flex-start; border: 1px solid #D5DDD3; border-radius: 12px; padding: 10px 14px; background: #FFFFFF; min-height: 44px; }
-[class*="st-key-pf_"] [role="radiogroup"] > div[data-selected="true"] { border-color: var(--green); background: #F3F8F5;
+        justify-content: flex-start; border: 1px solid var(--btn-line); border-radius: 12px; padding: 10px 14px; background: var(--card); min-height: 44px; }
+[class*="st-key-pf_"] [role="radiogroup"] > div[data-selected="true"] { border-color: var(--green); background: var(--select-bg);
         box-shadow: inset 0 0 0 1px var(--green); }
 [class*="st-key-pf_"] [data-testid="stRadioOption"] { width: 100%; margin: 0; }
 [class*="st-key-pf_"] [role="radiogroup"] > div > :not(label) { margin: 2px 0 0 26px; }
 [class*="st-key-pf_"] [data-testid="stRadioOption"][data-selected="true"] p { font-weight: 600; }
 [class*="st-key-pfmode_"] label { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%; }
-[class*="st-key-pfmode_"] label:has(input:checked) { border-color: var(--mint); background: #F3F8F5; }
+[class*="st-key-pfmode_"] label:has(input:checked) { border-color: var(--mint); background: var(--select-bg); }
 /* "Eaten" tick drawn as a pill */
-[class*="st-key-eat_"] label { border: 1px solid #D5DDD3; border-radius: 10px; padding: 8px 12px; background: #FFFFFF;
+[class*="st-key-eat_"] label { border: 1px solid var(--btn-line); border-radius: 10px; padding: 8px 12px; background: var(--card);
         width: 100%; min-height: 42px; align-items: center; }
 [class*="st-key-eat_"] label:has(input:checked), [class*="st-key-eat_"] label[data-selected="true"] {
         background: var(--green-soft); border-color: var(--mint); }
-[class*="st-key-eat_"] label:has(input:checked) p { color: #1A4D3D; font-weight: 600; }
+[class*="st-key-eat_"] label:has(input:checked) p { color: var(--green-ink); font-weight: 600; }
 [class*="st-key-shopitem_"] label:has(input:checked) p, [class*="st-key-shopitem_"] label[data-selected="true"] p {
-        text-decoration: line-through; color: #7C8782; }
+        text-decoration: line-through; color: var(--strike); }
 /* Day tabs drawn as pills */
 .stTabs [role="tablist"] { gap: 8px; flex-wrap: wrap; border: none; box-shadow: none; padding-bottom: 4px; }
 .stTabs [role="tablist"]::before, .stTabs [role="tablist"]::after { display: none; }
-.stTabs [role="tab"] { background: #FFFFFF; border: 1px solid var(--line); border-radius: 12px; padding: 8px 18px;
+.stTabs [role="tab"] { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 18px;
         height: auto; min-height: 42px; }
 .stTabs [role="tab"]:hover { border-color: var(--green); }
 .stTabs [role="tab"] p { font-weight: 600; color: var(--ink); }
-.stTabs [role="tab"][aria-selected="true"] { background: var(--green); border-color: var(--green); }
-.stTabs [role="tab"][aria-selected="true"] p { color: #FFFFFF; }
+.stTabs [role="tab"][aria-selected="true"] { background: var(--accent-bg); border-color: var(--accent-bg); }
+.stTabs [role="tab"][aria-selected="true"] p { color: var(--onaccent); }
 .stTabs .react-aria-SelectionIndicator, .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { display: none; }
 [data-testid="stProgressBarTrack"] { background: var(--line2); height: 10px; border-radius: 99px; }
 [data-testid="stProgressBarTrack"] > div { border-radius: 99px; }
 [data-testid="stMetric"] { background: var(--wash); border-radius: 16px; padding: 14px 16px; }
 [data-testid="stMetricValue"] { font-family: var(--heading); font-weight: 700; }
-[data-testid="stExpander"] details { border-radius: 16px; border-color: var(--line); background: #FFFFFF; }
-[data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="textarea"], [data-baseweb="select"] > div { background: #FFFFFF; }
+[data-testid="stExpander"] details { border-radius: 16px; border-color: var(--line); background: var(--card); }
+[data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="textarea"], [data-baseweb="select"] > div { background: var(--card); }
 /* Text pieces */
 .eyebrow { font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .page-title { font-family: var(--heading); font-size: 2.4rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.1;
         margin: 4px 0 8px; color: var(--ink); }
-.page-intro { color: #4A5852; font-size: 1.05rem; max-width: 660px; margin: 0 0 6px; }
+.page-intro { color: var(--muted2); font-size: 1.05rem; max-width: 660px; margin: 0 0 6px; }
 .card-title { font-family: var(--heading); font-size: 1.25rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
 .small-muted { font-size: .85rem; color: var(--muted); }
 .row-between { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
 .dot { width: 8px; height: 8px; border-radius: 99px; display: inline-block; flex: none; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 14px 0 4px; }
 .tile { background: var(--wash); border-radius: 16px; padding: 14px 16px; }
-.tile-label { display: flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 600; color: #4A5852; }
+.tile-label { display: flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 600; color: var(--muted2); }
 .tile-value { font-family: var(--heading); font-size: 1.9rem; font-weight: 700; margin: 2px 0; color: var(--ink); }
 .tile-value small { font-size: .9rem; font-weight: 500; color: var(--muted); margin-left: 4px; }
 .tile-note { font-size: .82rem; color: var(--muted); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; font-size: .82rem; font-weight: 500; }
-.chip-blue { background: #EAF1F6; color: #1F4E6B; font-weight: 600; }
-.chip-never { background: #F8EDE6; color: #7A3A1C; } .chip-less { background: var(--line2); color: var(--ink2); }
-.chip-more { background: var(--green-soft); color: #1A4D3D; }
-.chip-week { border: 1px solid var(--line); color: #4A5852; background: #FFFFFF; white-space: nowrap; }
-.also { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: .85rem; color: #4A5852; margin-top: 12px; }
+.chip-blue { background: var(--blue-bg); color: var(--protein-ink); font-weight: 600; }
+.chip-never { background: var(--never-bg); color: var(--never-ink); } .chip-less { background: var(--line2); color: var(--ink2); }
+.chip-more { background: var(--green-soft); color: var(--green-ink); }
+.chip-week { border: 1px solid var(--line); color: var(--muted2); background: var(--card); white-space: nowrap; }
+.also { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: .85rem; color: var(--muted2); margin-top: 12px; }
 .pref-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 8px; }
 .pref-box { border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
 .pref-head { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px; color: var(--ink); }
@@ -198,14 +203,14 @@ button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight:
 .food-title { font-weight: 600; font-size: 1rem; color: var(--ink); line-height: 1.35; }
 .food-grams { flex: none; font-size: .88rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
 .food-sub { font-size: .88rem; color: var(--muted); }
-.food-ar { font-weight: 600; color: #8A5A12; margin-left: 4px; }
-.food-recipe { font-size: .8rem; color: #7A5410; margin-top: 2px; }
-.food-macros { font-size: .8rem; color: #6A7671; margin-top: 2px; font-variant-numeric: tabular-nums; }
-.mp { color: #1F4E6B; } .mc { color: #8A4F12; } .mf { color: #5C4B8A; }
+.food-ar { font-weight: 600; color: var(--ar); margin-left: 4px; }
+.food-recipe { font-size: .8rem; color: var(--recipe); margin-top: 2px; }
+.food-macros { font-size: .8rem; color: var(--faint); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.mp { color: var(--protein-ink); } .mc { color: var(--carbs-ink); } .mf { color: var(--fat-ink); }
 /* Tables */
 .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; margin-top: 10px; }
 table.tbl { width: 100%; min-width: 720px; border-collapse: collapse; font-size: .88rem; margin: 0; }
-.tbl thead th { background: var(--wash); text-align: left; font-weight: 600; color: #4A5852; padding: 11px 14px; border: none; }
+.tbl thead th { background: var(--wash); text-align: left; font-weight: 600; color: var(--muted2); padding: 11px 14px; border: none; }
 .tbl td, .tbl tbody th { padding: 11px 14px; border: none; border-top: 1px solid var(--line2); color: var(--ink2);
         text-align: left; vertical-align: middle; }
 .tbl tbody th { font-weight: 600; color: var(--ink); }
@@ -218,25 +223,25 @@ table.tbl { width: 100%; min-width: 720px; border-collapse: collapse; font-size:
 /* Compare dialog */
 .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: var(--heading);
         font-size: 1.15rem; font-weight: 600; margin-bottom: 8px; color: var(--ink); }
-.cmp-best { padding: 3px 10px; border-radius: 999px; background: var(--green-soft); color: #1A4D3D; font-size: .75rem;
+.cmp-best { padding: 3px 10px; border-radius: 999px; background: var(--green-soft); color: var(--green-ink); font-size: .75rem;
         font-weight: 600; font-family: 'Hanken Grotesk', sans-serif; }
 .cmp-meal { margin-top: 6px; }
-.cmp-totals { background: var(--wash); border-radius: 14px; padding: 10px 12px; font-size: .8rem; color: #4A5852; margin-top: 10px; }
+.cmp-totals { background: var(--wash); border-radius: 14px; padding: 10px 12px; font-size: .8rem; color: var(--muted2); margin-top: 10px; }
 .cmp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; font-variant-numeric: tabular-nums; margin-top: 4px; }
 .cmp-grid b { display: block; color: var(--ink); font-size: .95rem; }
-.near { color: #1A4D3D; } .far { color: #8A4A26; }
+.near { color: var(--green-ink); } .far { color: var(--far); }
 /* Brand, welcome and footer */
 .brand { display: flex; align-items: center; gap: 10px; font-family: var(--heading); font-weight: 700; font-size: 1.2rem; color: var(--ink); }
-.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--green); color: #FFFFFF;
+.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent-bg); color: var(--onaccent);
         display: flex; align-items: center; justify-content: center; flex: none; }
-.hero-tag { display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--green-soft); color: #1A4D3D;
+.hero-tag { display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--green-soft); color: var(--green-ink);
         font-size: .82rem; font-weight: 600; margin-top: 22px; }
 .hero-title { font-family: var(--heading); font-size: 3rem; line-height: 1.05; font-weight: 700; letter-spacing: -.025em;
         margin: 16px 0 12px; color: var(--ink); }
-.hero-sub { font-size: 1.1rem; color: #4A5852; max-width: 580px; }
+.hero-sub { font-size: 1.1rem; color: var(--muted2); max-width: 580px; }
 .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 26px 0 0 !important;
         padding: 0 !important; list-style: none; }
-.step { background: #FFFFFF; border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px !important; margin: 0 !important; }
+.step { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px !important; margin: 0 !important; }
 .learn-list li, .steps li { margin: 0 !important; }
 .step-n { font-family: var(--heading); font-weight: 700; color: var(--green); font-size: .85rem; }
 .step-t { font-weight: 600; color: var(--ink); margin: 2px 0; }
@@ -246,10 +251,49 @@ table.tbl { width: 100%; min-width: 720px; border-collapse: collapse; font-size:
 @media (max-width: 640px) { .hero-title { font-size: 2.2rem; } .page-title { font-size: 1.9rem; } }
 </style>
 """
+# Dark mode: the same names with deep green-black surfaces and lighter text and accents
+DARK_CSS = """
+<style>
+:root { --card: #161E1A; --line: #2A3530; --line2: #222C27; --ink: #E8EEEA; --ink2: #C4CEC8; --muted: #9DABA4;
+        --muted2: #B3BFB9; --faint: #8E9C95; --green: #7CC6A4; --accent-bg: #2E7D5E; --onaccent: #FFFFFF; --green-soft: #1C3329;
+        --green-ink: #9BD6BA; --mint: #2F5A47; --wash: #1B2420; --select-bg: #1A2E25; --btn-line: #34413A;
+        --never-bg: #3A2419; --never-ink: #F0B79A; --never-icon: #E8956E; --blue-bg: #1A2B38; --close-bg: #3A2E14;
+        --close-ink: #EBC77E; --protein: #6FA8CF; --carbs: #E3A35F; --fat: #A898D6; --protein-ink: #8FC0E0;
+        --carbs-ink: #E8B07A; --fat-ink: #BBAEE6; --ar: #E3B66E; --recipe: #D9AE6A; --strike: #75827C; --far: #E8A884;
+        --ok: #5FB38E; --close: #E0A93A; --off: #E07A50; --info: #6E7C75; --shadow: rgba(0,0,0,.4); }
+</style>
+"""
+# Streamlit keeps the chosen theme (Light / Dark / System) in the browser under this key, the same one its
+# Settings menu writes. The switch saves the choice there and reloads; the URL keeps the user signed in.
+THEME_JS = """<script>
+const w = (window.parent && window.parent.localStorage) ? window.parent : window;
+w.localStorage.setItem("stActiveTheme-" + w.location.pathname + "-v2", JSON.stringify("%s"));
+w.location.reload();
+</script>"""
+
+
+def is_dark():
+    theme = st.context.theme
+    return bool(theme and theme.type == "dark")
+
+
+def chart_color():
+    return "#7CC6A4" if is_dark() else "#1E5B48"
+
+
+def flip_theme():
+    st.session_state.apply_theme = "Dark" if st.session_state.dark_mode else "Light"
+
+
+def theme_switch():
+    """'Dark mode' switch. It follows the theme in use, also when it was changed in Streamlit's own Settings."""
+    if "apply_theme" not in st.session_state:
+        st.session_state.dark_mode = is_dark()
+    st.toggle("Dark mode", key="dark_mode", on_change=flip_theme)
 
 
 def svg(name, size=20, stroke=1.8, color="currentColor"):
-    return (f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="{stroke}" '
+    return (f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" style="stroke:{color}" stroke-width="{stroke}" '
             f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICONS[name]}</svg>')
 
 
@@ -503,7 +547,10 @@ def profile_form(user, targets=None):
 
 def signed_out_page():
     """Welcome: what the app does on the left, Sign in / New user on the right. Returns (profile, pin) or None."""
-    st.markdown(BRAND, unsafe_allow_html=True)
+    brand, switch = st.columns([3, 1], vertical_alignment="center")
+    brand.markdown(BRAND, unsafe_allow_html=True)
+    with switch.container(horizontal=True, horizontal_alignment="right"):
+        theme_switch()
     left, right = st.columns([1.2, 1], gap="large")
     left.markdown(
         '<span class="hero-tag">Personal weekly meal plans</span>'
@@ -539,11 +586,12 @@ def top_bar(user, plan):
         p = str(st.query_params.get("p", "plan")).capitalize()
         st.session_state.nav = p if p in PAGES else "Plan"
     with st.container(key="topbar"):
-        brand, nav, right = st.columns([1.1, 4, 1.7], vertical_alignment="center")
+        brand, nav, right = st.columns([1.1, 3.6, 2.3], vertical_alignment="center")
         brand.markdown(BRAND, unsafe_allow_html=True)
         with nav:
             page = st.segmented_control("Page", PAGES, required=True, key="nav", label_visibility="collapsed")
         with right.container(horizontal=True, horizontal_alignment="right", vertical_alignment="center"):
+            theme_switch()
             with st.popover(user["name"], icon=":material/person:"):
                 st.markdown(f"Signed in as **{user['name']}**")
                 st.button("Edit profile", on_click=go_to, args=("Profile",), key="menu_profile", width="stretch",
@@ -593,11 +641,11 @@ def meals_done(items):
 def ring_svg(done, total, size=84):
     c = 213.6  # circumference of r=34
     return (f'<svg width="{size}" height="{size}" viewBox="0 0 84 84" role="img" aria-label="{done} of {total} meals eaten">'
-            '<circle cx="42" cy="42" r="34" fill="none" stroke="#E6F0EA" stroke-width="9"/>'
-            f'<circle cx="42" cy="42" r="34" fill="none" stroke="#1E5B48" stroke-width="9" stroke-linecap="round" '
+            '<circle cx="42" cy="42" r="34" fill="none" style="stroke:var(--green-soft)" stroke-width="9"/>'
+            f'<circle cx="42" cy="42" r="34" fill="none" style="stroke:var(--green)" stroke-width="9" stroke-linecap="round" '
             f'stroke-dasharray="{done / max(total, 1) * c:.1f} {c}" transform="rotate(-90 42 42)"/>'
             f'<text x="42" y="47" text-anchor="middle" font-family="Schibsted Grotesk, sans-serif" font-size="17" '
-            f'font-weight="700" fill="#15201C">{done}/{total}</text></svg>')
+            f'font-weight="700" style="fill:var(--ink)">{done}/{total}</text></svg>')
 
 
 def show_hello(user, plan, items):
@@ -626,7 +674,7 @@ def show_hello(user, plan, items):
 def show_targets(targets, micros):
     with st.container(key="card_targets"):
         cal = targets["calories"]
-        tiles = [("Calories", f"{cal:,}", "kcal", "#1E5B48", "Every day")]
+        tiles = [("Calories", f"{cal:,}", "kcal", "var(--green)", "Every day")]
         for m, label, per_g in (("protein_g", "Protein", 4), ("carbs_g", "Carbs", 4), ("fat_g", "Fat", 9)):
             tiles.append((label, f"{targets[m]}", "g", MACRO_COLORS[m], f"{targets[m] * per_g / cal * 100:.0f}% of calories"))
         html_tiles = "".join(f'<div class="tile"><div class="tile-label"><span class="dot" style="background:{c}"></span>{l}'
@@ -660,9 +708,9 @@ def show_understood(prefs):
         left.markdown('<div class="card-title">What I understood from your preferences</div>', unsafe_allow_html=True)
         right.button("Edit preferences", type="tertiary", key="edit_prefs", on_click=go_to, args=("Profile",),
                      width="stretch")
-        st.markdown('<div class="pref-grid">' + box("never", "#9A4A26", "Never included", sorted(set(blocked)), "chip-never")
-                    + box("less", "#5B6863", "Less often", prefs["avoid"], "chip-less")
-                    + box("more", "#1E5B48", "More often", prefs["prefer"], "chip-more") + "</div>", unsafe_allow_html=True)
+        st.markdown('<div class="pref-grid">' + box("never", "var(--never-icon)", "Never included", sorted(set(blocked)), "chip-never")
+                    + box("less", "var(--muted)", "Less often", prefs["avoid"], "chip-less")
+                    + box("more", "var(--green)", "More often", prefs["prefer"], "chip-more") + "</div>", unsafe_allow_html=True)
 
 
 def on_check(plan_id, day_index, slot, key):
@@ -831,7 +879,7 @@ def _version_column(title, meals, others, daily, best, key, n_meals):
             near = abs(diff) <= 0.05 * daily[m]
             cells.append(f"<div><b>{totals[m]:,.0f}{'' if m == 'calories' else ' g'}</b>{label} "
                          f'<span class="{"near" if near else "far"}">({diff:+.0f})</span></div>')
-        st.markdown(f'<div class="cmp-totals"><b style="color:#15201C">Day with this version</b>'
+        st.markdown(f'<div class="cmp-totals"><b style="color:var(--ink)">Day with this version</b>'
                     f'<div class="cmp-grid">{"".join(cells)}</div></div>', unsafe_allow_html=True)
     return totals
 
@@ -894,8 +942,8 @@ def show_week(plan, items):
                     f'<span><b>{tot.calories:,.0f}</b> kcal <span class="d">({delta_words(tot.calories - targets["calories"])})</span></span>'
                     + "".join(f'<span><b style="color:{col}">{tot[m]:.0f} g</b> {name} <span class="d">('
                               f'{delta_words(tot[m] - targets[m], " g")})</span></span>'
-                              for m, name, col in (("protein_g", "protein", "#1F4E6B"), ("carbs_g", "carbs", "#8A4F12"),
-                                                   ("fat_g", "fat", "#5C4B8A")))
+                              for m, name, col in (("protein_g", "protein", "var(--protein-ink)"), ("carbs_g", "carbs", "var(--carbs-ink)"),
+                                                   ("fat_g", "fat", "var(--fat-ink)")))
                     + "</div>", unsafe_allow_html=True)
                 if right.button("New version of this day", key=f"newday_{plan['id']}_{d}", width="stretch",
                                 icon=":material/autorenew:",
@@ -995,7 +1043,7 @@ def page_nutrients(plan, items, foods):
              ("Close", STATUS["close"][1], str(len(groups["close"])), groups["close"]),
              ("A little under or over", STATUS["low"][1], str(len(groups["off"])), groups["off"])]
     st.markdown('<div class="tiles">' + "".join(
-        f'<div class="tile" style="background:#FFFFFF;border:1px solid #E3E8E1;padding:18px 20px"><div class="tile-label">'
+        f'<div class="tile" style="background:var(--card);border:1px solid var(--line);padding:18px 20px"><div class="tile-label">'
         f'<span class="dot" style="background:{c}"></span>{l}</div><div class="tile-value">{v}</div>'
         f'<div class="tile-note">{", ".join(names) or "None"}</div></div>' for l, c, v, names in tiles) + "</div>",
         unsafe_allow_html=True)
@@ -1066,11 +1114,12 @@ def profile_of(user):
 
 def weight_chart(history, expected):
     """Logged weights (green line + points) and the weight the plan should give (grey dashed line)."""
+    line, ring = chart_color(), "#161E1A" if is_dark() else "#FFFFFF"
     hist = history.assign(day=pd.to_datetime(history["day"]))
     base = alt.Chart(hist).encode(x=alt.X("day:T", title=None), y=alt.Y("weight_kg:Q", title="kg", scale=alt.Scale(zero=False)),
                                   tooltip=[alt.Tooltip("day:T", title="Date"), alt.Tooltip("weight_kg:Q", title="Weight (kg)")])
-    actual = (base.mark_line(color="#1E5B48", strokeWidth=3)
-              + base.mark_point(color="#1E5B48", filled=True, size=80, stroke="#FFFFFF", strokeWidth=2, opacity=1))
+    actual = (base.mark_line(color=line, strokeWidth=3)
+              + base.mark_point(color=line, filled=True, size=80, stroke=ring, strokeWidth=2, opacity=1))
     plan_line = alt.Chart(expected).mark_line(color="#8E9A95", strokeDash=[6, 5], strokeWidth=2).encode(
         x="day:T", y="expected_kg:Q", tooltip=[alt.Tooltip("day:T", title="Date"),
                                                 alt.Tooltip("expected_kg:Q", title="Expected (kg)", format=".1f")])
@@ -1101,7 +1150,7 @@ def show_weight(plan, user_id, foods, emb):
         if warning:
             st.warning(warning)
         if len(history) > 1:
-            st.markdown('<div class="legend" style="font-size:.82rem"><span><span class="dot" style="background:#1E5B48">'
+            st.markdown('<div class="legend" style="font-size:.82rem"><span><span class="dot" style="background:var(--green)">'
                         '</span>Your weight</span><span><span class="dot" style="background:#8E9A95"></span>What the plan '
                         'expects</span></div>', unsafe_allow_html=True)
             st.altair_chart(weight_chart(history, expected_line(history, start, expected)), width="stretch")
@@ -1204,7 +1253,7 @@ def show_learning(user_id):
                     + "</div>", unsafe_allow_html=True)
         rates = pd.DataFrame([{"Week": f"Week {w}", "Meals eaten (%)": round(100 * acceptance_rate(g), 1)}
                               for w, g in history.groupby("week_number")])
-        st.bar_chart(rates, x="Week", y="Meals eaten (%)", height=220, color="#1E5B48")
+        st.bar_chart(rates, x="Week", y="Meals eaten (%)", height=220, color=chart_color())
 
 
 def page_progress(plan, items, user_id, foods, emb):
@@ -1263,7 +1312,9 @@ def save_profile(submitted, foods, emb):
 def main():
     foods, emb = load_resources()
     db.init_db()
-    st.html(CSS)
+    st.html(CSS + (DARK_CSS if is_dark() else ""))
+    if "apply_theme" in st.session_state:  # the Dark mode switch was flipped: save the choice and reload
+        st.html(THEME_JS % st.session_state.pop("apply_theme"), unsafe_allow_javascript=True)
 
     user_id = current_user_id()
     user = db.get_user(user_id) if user_id else None

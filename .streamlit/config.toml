@@ -1,18 +1,29 @@
-# Light, calm theme: soft sage background, white cards, deep green accent. Extra styling is in app.py CSS.
+# Calm theme in two modes: light (soft sage, white cards) and dark (deep green-black, charcoal cards), both with a
+# green accent. The Dark mode switch in the app (or Settings > Theme) picks one. Extra styling is in app.py CSS.
 [theme]
-base = "light"
+showWidgetBorder = true
+baseRadius = "medium"
+buttonRadius = "medium"
+font = "Hanken Grotesk:https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap, sans-serif"
+headingFont = "Schibsted Grotesk:https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&display=swap, sans-serif"
+
+[theme.light]
 primaryColor = "#1E5B48"
 backgroundColor = "#F4F6F2"
 secondaryBackgroundColor = "#FFFFFF"
 textColor = "#15201C"
 linkColor = "#1E5B48"
 borderColor = "#D9E1D6"
-showWidgetBorder = true
-baseRadius = "medium"
-buttonRadius = "medium"
-font = "Hanken Grotesk:https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap, sans-serif"
-headingFont = "Schibsted Grotesk:https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&display=swap, sans-serif"
 chartCategoricalColors = ["#1E5B48", "#2E6A8E", "#D98A3D", "#8C7BC0", "#8E9A95"]
+
+[theme.dark]
+primaryColor = "#2E7D5E"
+backgroundColor = "#0E1412"
+secondaryBackgroundColor = "#1A221E"
+textColor = "#E4EBE6"
+linkColor = "#7CC6A4"
+borderColor = "#2C3832"
+chartCategoricalColors = ["#5FB38E", "#6FA8CF", "#E3A35F", "#A898D6", "#8E9A95"]
 
 [client]
 toolbarMode = "minimal"
