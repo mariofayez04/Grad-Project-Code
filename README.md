@@ -25,11 +25,16 @@ macro targets, and learns from the meals the user actually eats.
 |---|---|
 | Name + PIN (private sign-in), age, biological sex, weight, height, activity level (1-3), goal, meals per day (3-5), optional diet mode (diabetes-friendly, low-salt) | Daily calorie target and macro split (g), plus fiber, sugars, saturated fat, sodium, potassium, calcium and iron |
 | Free-text preferences and allergies | 7-day plan with 3, 4 or 5 meals a day and gram portions, incl. 20 Egyptian dishes (koshari, ful, molokhia...) |
-| "Eaten" checkbox under every meal | Next week's plan adapted to what was eaten and skipped |
-| "⚖️ Log weight" | Weight chart vs the plan's expected trend, pace per week, targets that follow your weight |
-| "🖨️ Download plan (PDF)" | Printable week: every day with tick boxes, plus the shopping list |
-| "🎲 New meal" / "New version of this day" | A different meal or day shown next to the current one; you keep the one you prefer and next week learns from it |
+| "Eaten" tick under every meal | Next week's plan adapted to what was eaten and skipped |
+| "Log weight" (Progress page) | Weight chart vs the plan's expected trend, pace per week, targets that follow your weight |
+| "Download plan (PDF)" (Plan page) | Printable week: every day with tick boxes, plus the shopping list |
+| "New meal" / "New version of this day" | A different meal or day shown next to the current one; you keep the one you prefer and next week learns from it |
 | "Swap a food" under every meal | Similar foods (embeddings + macro profile) 3 at a time with "Show more", or type what you would like; sized to keep the calories; swapped-away foods appear less next week |
+| "Dark mode" switch (top bar) | The whole app in a dark theme; the choice is remembered in the browser |
+
+The app has a top menu with five pages: **Plan** (targets, the week's meals, week at a glance), **Nutrients**,
+**Shopping** (list with tick boxes and downloads), **Progress** (finish the week, rating, weight, what it learned) and
+**Profile**.
 
 ## How it works
 
@@ -96,7 +101,8 @@ See [data/evaluation/results.md](data/evaluation/results.md) for the numbers use
    describe their likes, dislikes and allergies, and what the app should understand (Instructions tab). Put the
    filled sheets' rows into that one file in `data/evaluation/` (keep the header), then run `python -m src.evaluate`.
 2. **One-week pilot (the app).** Each tester makes a profile (name + PIN), follows the plan for a week, ticks the
-   meals they eat, opens **"📝 Rate this week"** in the "Finish the week" section, then presses **Finish week**.
+   meals they eat, opens **"Rate this week"** in the "Finish the week" section of the Progress page, then presses
+   **Finish week**.
    A second week shows whether the plan learned. `python -m src.evaluate` then reports meals eaten per week, swaps,
    New meal / New day choices, weight entries and the ratings - aggregated, without names (comments go to
    `pilot_comments.csv` without names).

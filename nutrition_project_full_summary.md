@@ -412,6 +412,7 @@ The project was built locally in VS Code / Python (not Colab), so the Gemini pro
 | 2026-10-27 | Roadmap #1 private users (PIN), #3 shopping list, #5 New meal / New day with before-after choice (section 17.7) |
 | 2026-10-28 | #8 PDF, #11 meals per day, bug fix (PDF downloading at sign-in), #7 extra nutrients, #10 diet modes + nutrient caps, #6 weight tracking, #9 Egyptian dishes, #2 evaluation + real-user tools, dishes in feedback learning |
 | 2026-10-28 | All of the above committed, merged into `main` and pushed to GitHub (section 17.8) |
+| 2026-10-28 | UI redesign (light calm theme, top-menu pages) and a Dark mode switch, merged into `main` and pushed (section 17.9) |
 
 ### 17.2 What each phase built
 
@@ -469,7 +470,7 @@ Small fixes
 5. **Learning**: every swap is saved (`swaps` table). When the week is finished, the swapped-away food counts as skipped in the taste vector, food penalties and family penalties, and is listed under "Swapped away" in "What I learned".
 - New code: `component_foods`, `component_of`, `swap_options`, `search_swap`, `servable_foods` (planner); `replace_item`, `user_swaps` (db); `swaps` argument in `food_penalties`, `next_week_inputs`, `week_summary` (feedback).
 
-Design
+Design (replaced by the redesign of 2026-10-28, section 17.9)
 - Dark theme (`.streamlit/config.toml` + CSS at the top of `app.py`): **black** background, **dark-gray** meal cards, totals boxes and profile sidebar, **red** buttons, red accents (card top strip, calorie labels, grams).
 - All meal cards have the same height; "Swap a food" and "Eaten" sit on one row at the bottom.
 - Each food shows as: **bold title + grams** (e.g. "Turkey 100 g"), then the details in medium text, then `(kcal : 139), (P : 30), (F : 2), (C : 0)`.
@@ -499,6 +500,11 @@ Limitations to state in the report: the tagger and parser test cases were used w
 .venv\Scripts\python.exe -m src.evaluate               # regenerates data/evaluation/results.md (~3-5 min)
 docker compose up -d --build                           # same app in Docker
 ```
+
+If a test fails with `httpx.ConnectTimeout` (the model loader checking Hugging Face), run the tests offline:
+`set HF_HUB_OFFLINE=1` and `set TRANSFORMERS_OFFLINE=1` (PowerShell: `$env:HF_HUB_OFFLINE=1; $env:TRANSFORMERS_OFFLINE=1`).
+In Claude's preview, `.claude/launch.json` has a second entry, "nutriplan-8502", on port 8502 with a scratch database,
+so testing never touches `data/app.db`.
 
 ### 17.6 What is left
 
@@ -665,4 +671,98 @@ All the work of 2026-10-27 and 2026-10-28 (sections 17.3 and 17.7) is in commit 
 - Not in git on purpose (`.gitignore`): `data/app.db` (people's profiles and plans), `data/secret.key` (sign-in link secret), `data/plan_demo.pdf` (demo output), `.venv/`.
 - Before committing, a test was found writing its fake survey comment into `data/evaluation/pilot_comments.csv`; the test now writes to a temporary folder and the file was removed.
 - 235 tests pass at this commit.
-- Left out of the commits on purpose: an uncommitted change to `.streamlit/config.toml` (a light "sage green" theme) made after the commit, outside this work. It was kept as it is in the working folder; commit it when it's finished.
+- Left out of the commits on purpose: an uncommitted change to `.streamlit/config.toml` (a light "sage green" theme) made after the commit, outside this work. It was kept as it is in the working folder; commit it when it's finished. (Superseded: the redesign in 17.9 replaced the theme file and is committed.)
+
+### 17.9 UI redesign and dark mode (2026-10-28)
+
+Goal: a more premium, calm look for a health app (motivational, not noisy, comfortable), with no feature removed, no
+"AI-looking" fonts, styles or copy, and no long dashes.
+
+**1. Competitor research (what people say)**
+
+| App | What users like | What users complain about | What we did |
+|---|---|---|---|
+| MyFitnessPal | Big food database | The April 2026 "Today" redesign made logging slower, micronutrients buried in menus and endless scrolling; heavy ads; complex interface | Every feature is one click from the top menu; nutrients are in plain view (Plan page pills + Nutrients page); no ads or upsell banners |
+| Lifesum | Described as "beautiful, clean, calming" | Food ratings feel judgmental; ads | Kept the calm look; replaced red warnings with neutral words: "On target", "Close", "A little under or over" |
+| Cronometer (web) | Accuracy, custom recipes | Web version looks like a stretched phone app, too much empty space | Layouts use the full desktop width (two meal cards side by side, 4 target tiles in a row) |
+| Eat This Much | Desktop multi-day view (CNN Underscored top pick) | Free tier limited to one day | Kept "Week at a glance" as a clear table |
+| Mealime | Low effort, simple grocery list | Less control | Shopping list with tick boxes, a basket progress bar and sections in columns |
+
+Sources: mwm.ai (MyFitnessPal v26.16.0 redesign), unstar.app (MyFitnessPal ads and paywall), nutrola.app and
+kimola.com (Lifesum reviews), forums.cronometer.com, CNN Underscored (best meal planning apps), plantoeat.com
+(Mealime and Eat This Much reviews). Several sources are written by competing apps, so their numbers are treated
+loosely.
+
+**2. Design first, then code**
+- The design was drawn first as a canvas with 9 screens: welcome and sign in, profile (new user and edit), Plan,
+  Nutrients, Shopping, Progress, the Swap popover, the New meal compare dialog, and a phone view.
+  Canvas: https://claude.ai/artifact/JDqexXsBckX3sr5yvFcpfh (private until shared from its Share menu).
+- Then it was built into `app.py` and `.streamlit/config.toml`.
+
+**3. Look**
+- Light: soft sage background `#F4F6F2`, white cards with a thin border and 20 px corners, deep green accent `#1E5B48`,
+  ink text `#15201C`. Macro colours: protein blue, carbs orange, fat lavender.
+- Fonts (Google Fonts, set in the theme): Hanken Grotesk for text, Schibsted Grotesk for headings. The usual
+  AI-template fonts (Inter, Poppins, Space Grotesk) were avoided on purpose.
+- Emoji replaced by simple line icons (inline SVG in the page, Material icons on buttons). No gradients or glow.
+- Copy is plain and warm, e.g. "27 meals to go this week. Steady beats perfect."; nutrient statuses never say "bad".
+
+**4. New layout (no sidebar)**
+- A top bar with the brand, the page menu (**Plan, Nutrients, Shopping, Progress, Profile**), the **Dark mode** switch
+  and the user's name (menu: Signed in as..., Edit profile, Sign out).
+- The open page is kept in the address (`?p=shopping`), so a reload stays on the same page and keeps the user signed in
+  (`?user=ID&t=...` as before).
+- **Welcome (signed out):** headline, short intro and the 4 "How it works" steps on the left; a card on the right with a
+  Sign in / New user switch. New user shows the full profile form in the card. The PIN flows are unchanged (wrong PIN,
+  locked for 5 minutes, profiles from before PINs asked to create one).
+- **Plan:** greeting with the date and week, a ring with meals eaten this week and a "Finish the week" shortcut; daily
+  targets as 4 tiles (with % of calories), BMR / TDEE / BMI, the diet mode badge and the "Also every day" nutrient line;
+  "What I understood" as chips (Never included / Less often / More often) with "Edit preferences"; day tabs drawn as
+  pills; per day: totals vs targets in words ("30 under", "14 g over"), nutrient pills with a coloured dot and a legend,
+  "New version of this day"; meal cards with an icon, macros, kcal and a protein/carbs/fat bar, the foods (Arabic name and
+  "In this portion: ..." for Egyptian dishes), **Swap a food**, **New meal** and an **Eaten** pill that turns green;
+  "Week at a glance" as a table with **Download plan (PDF)** and **Download CSV**.
+- **Nutrients:** summary tiles (on target / close / a little under or over, with the nutrient names), a table with
+  status chips, daily average with a bar towards the target, target per day ("at least 29 g", "under 1,500 mg") and days
+  on target, then the notes about the numbers.
+- **Shopping:** text and CSV downloads at the top, a "N of M in the basket" progress bar, the "Leave out meals already
+  eaten" switch, section cards in 3 columns; ticked items are struck through.
+- **Progress:** Finish the week (progress bar, explanation, "Rate this week" survey, the Finish button), Weight progress
+  (4 numbers with help, the chart with a legend, Log weight, the "Rebuild this week with my new targets" offer) and
+  What I learned (3 lists + meals eaten per week chart). The intro sums up the weight change ("1.3 kg down since ...").
+- **Profile:** the same fields as before, grouped in cards (Account, About you, Goal and activity, Your meals,
+  Preferences and allergies). Biological sex, goal, activity, meals per day and Egyptian dishes are tappable choice cards
+  with a short note each (e.g. "Lose weight: 20% under your daily need"); Health focus is two checkboxes. A side card
+  shows this week's target and the "Generate my weekly plan" button.
+- **Dialogs:** the Swap popover and the "Which one do you prefer?" comparison keep their behaviour; the version closer to
+  the targets gets a green border and a "Closer to your targets" badge.
+- Phone width: the menu wraps, cards stack, wide tables scroll inside their box; no sideways page scroll.
+
+Every feature from before is still there; only where it lives changed (e.g. weight and Finish week are on Progress, the
+profile form is on Profile).
+
+**5. Dark mode switch**
+- `.streamlit/config.toml` now has `[theme.light]` and `[theme.dark]` colours (shared fonts and corners in `[theme]`).
+  Dark: background `#0E1412`, cards `#161E1A`, text `#E4EBE6`, buttons `#2E7D5E`, lighter green accent `#7CC6A4`.
+- All colours in `app.py` are CSS variables; when the dark theme is in use (`st.context.theme.type`), a dark set of the
+  same variables is added, so cards, chips, tables, icons and charts follow.
+- The **Dark mode** switch (top bar and welcome screen) saves the choice where Streamlit's own Settings > Theme menu keeps
+  it (browser storage, key `stActiveTheme-<page path>-v2`) and reloads the page; the URL keeps the user signed in and on
+  the same page. The switch also shows the right position when the theme was changed in Settings.
+- Limitation: the switch relies on that Streamlit storage key, which is fine for the pinned `streamlit==1.65.0`; a
+  future Streamlit upgrade may change it (Settings > Theme would still work).
+
+**6. Tests and checks**
+- 8 app test files updated for the new layout: tests open other pages with `at.session_state["goto"] = "<Page>"`; labels
+  changed ("Eaten ✅" -> "Eaten", "➕ Log weight" -> "Log weight"); meals per day and Egyptian dishes are now radios,
+  Health focus a checkbox; the Egyptian dish check looks for "In this portion".
+- Full suite: 235 passed after the redesign; the 96 app-level tests passed again after dark mode.
+- Checked in the browser on a scratch database: sign up, sign out / in, reload keeps the user, every page, Eaten tick,
+  Swap suggestions, New meal comparison, phone width, both themes; no console errors. The `torchvision` messages in the
+  local server log come from Streamlit's file watcher scanning the transformers package (already off in Docker).
+
+**7. Git**
+- Commit `c3330fc` "Redesign the app UI: light calm theme and top-menu pages" and `516f23d` "Add a Dark mode switch with a
+  matching dark palette", made on the branch `ui-redesign`, merged into `main` (fast-forward) and pushed to GitHub.
+- Files: `app.py`, `.streamlit/config.toml`, `.claude/launch.json`, 8 test files. The old dark/red theme is still in
+  git history (commit `46e78dd`) if it is ever needed.
