@@ -148,10 +148,10 @@ def test_app_setting_and_arabic(tmp_path, monkeypatch):
     at.text_input[0].input("Sherif")
     at.text_input[1].input("1234")
     at.text_input[2].input("1234")
-    next(s for s in at.selectbox if "Egyptian dishes" in s.label).set_value("often")
+    next(r for r in at.radio if "Egyptian dishes" in r.label).set_value("often")
     at.button[0].click().run()
     assert not at.exception
     uid = db.list_users()[0]["id"]
     assert db.get_user(uid)["egyptian_dishes"] == "often" and db.latest_plan(uid)["targets"]["egyptian_dishes"] == "often"
     page = " ".join(m.value for m in at.markdown)
-    assert "🥘" in page and any(a in page for a in ("فول", "كشري", "ملوخية", "شكشوكة", "بصارة", "محشي", "طعمية"))
+    assert "In this portion" in page and any(a in page for a in ("فول", "كشري", "ملوخية", "شكشوكة", "بصارة", "محشي", "طعمية"))

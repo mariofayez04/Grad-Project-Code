@@ -106,6 +106,8 @@ def test_app_finish_week(tmp_path, monkeypatch):
     at.text_input[2].input("1234")
     at.button[0].click().run()
     at.checkbox[0].check().run()
+    at.session_state["goto"] = "Progress"
+    at.run()
     finish = next(b for b in at.button if "Finish week" in b.label)
     finish.click().run()
     assert not at.exception

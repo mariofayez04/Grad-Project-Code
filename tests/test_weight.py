@@ -109,10 +109,12 @@ def test_app_log_weight_and_rebuild(temp_db):
     at.text_input[2].input("1234")
     next(n for n in at.number_input if n.label == "Weight (kg)").set_value(100.0)
     at.button[0].click().run()
+    at.session_state["goto"] = "Progress"
+    at.run()
     assert any("Weight progress" in s.value for s in at.subheader)
 
     at.number_input(key="log_weight_kg").set_value(88.0)
-    next(b for b in at.button if b.label == "➕ Log weight").click().run()
+    next(b for b in at.button if b.label == "Log weight").click().run()
     assert not at.exception
     uid = db.list_users()[0]["id"]
     assert db.get_user(uid)["weight_kg"] == 88.0

@@ -1,7 +1,18 @@
-# Dark theme: black background, dark-gray panels (sidebar, meal cards), red buttons. Extra styling is in app.py CSS.
+# Light, calm theme: soft sage background, white cards, deep green accent. Extra styling is in app.py CSS.
 [theme]
-base = "dark"
-primaryColor = "#E63946"
-backgroundColor = "#000000"
-secondaryBackgroundColor = "#1E1E1E"
-textColor = "#F5F5F5"
+base = "light"
+primaryColor = "#1E5B48"
+backgroundColor = "#F4F6F2"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#15201C"
+linkColor = "#1E5B48"
+borderColor = "#D9E1D6"
+showWidgetBorder = true
+baseRadius = "medium"
+buttonRadius = "medium"
+font = "Hanken Grotesk:https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap, sans-serif"
+headingFont = "Schibsted Grotesk:https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&display=swap, sans-serif"
+chartCategoricalColors = ["#1E5B48", "#2E6A8E", "#D98A3D", "#8C7BC0", "#8E9A95"]
+
+[client]
+toolbarMode = "minimal"

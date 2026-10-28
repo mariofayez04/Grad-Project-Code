@@ -110,8 +110,8 @@ def test_app_five_meals(temp_db):
     at.text_input[0].input("Hana")
     at.text_input[1].input("1234")
     at.text_input[2].input("1234")
-    next(s for s in at.selectbox if s.label == "Meals per day").set_value(5)
+    next(r for r in at.radio if r.label == "Meals per day").set_value(5)
     at.button[0].click().run()
     assert not at.exception
-    assert sum(c.label == "Eaten ✅" for c in at.checkbox) == 35            # 7 days x 5 meals
+    assert sum(c.label == "Eaten" for c in at.checkbox) == 35            # 7 days x 5 meals
     assert db.get_user(db.list_users()[0]["id"])["meals_per_day"] == 5

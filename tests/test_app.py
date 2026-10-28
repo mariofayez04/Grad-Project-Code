@@ -88,9 +88,12 @@ def test_app_generates_plan(temp_db):
     at.button[0].click().run()
     assert not at.exception
     assert any("Week 1 meal plan" in s.value for s in at.subheader)
-    assert sum(c.label == "Eaten ✅" for c in at.checkbox) == 28
-    assert any("Shopping list" in s.value for s in at.subheader)
+    assert sum(c.label == "Eaten" for c in at.checkbox) == 28
     assert any("PDF" in e.proto.label for e in at.get("download_button"))
+    at.session_state["goto"] = "Shopping"                            # open another page from the top menu
+    at.run()
+    assert not at.exception
+    assert any("Shopping list" in m.value for m in at.markdown)
     plan = db.latest_plan(db.list_users()[0]["id"])
     assert "peanut" in plan["prefs"]["block_allergen_groups"]
 

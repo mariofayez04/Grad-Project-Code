@@ -92,6 +92,8 @@ def test_app_rate_this_week(temp_db):
     at.text_input[1].input("1234")
     at.text_input[2].input("1234")
     at.button[0].click().run()
+    at.session_state["goto"] = "Progress"
+    at.run()
     assert any("Rate this week" in e.label for e in at.expander)
     next(s for s in at.select_slider if s.label.startswith("How much did you like")).set_value(5)
     next(r for r in at.radio if r.label.startswith("Would you keep")).set_value("yes")

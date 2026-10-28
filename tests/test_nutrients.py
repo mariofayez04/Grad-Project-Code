@@ -110,5 +110,8 @@ def test_pdf_and_app_show_nutrients(foods, tmp_path, monkeypatch):
     at.text_input[2].input("1234")
     at.button[0].click().run()
     assert not at.exception
-    assert any("Nutrients this week" in s.value for s in at.subheader)
+    at.session_state["goto"] = "Nutrients"
+    at.run()
+    assert not at.exception
+    assert any("Nutrients this week" in m.value for m in at.markdown)
     assert db.latest_plan(db.list_users()[0]["id"])["targets"]["micros"]["iron_mg"]["value"] == 8   # male default

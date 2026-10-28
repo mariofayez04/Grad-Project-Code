@@ -136,7 +136,7 @@ def test_app_diet_mode(temp_db):
     at.text_input[0].input("Dina")
     at.text_input[1].input("1234")
     at.text_input[2].input("1234")
-    next(m for m in at.multiselect if m.label.startswith("Health focus")).set_value(["low_sodium"])
+    next(c for c in at.checkbox if "Low-salt" in c.label).check()
     at.button[0].click().run()
     assert not at.exception
     assert any("Diet mode" in m.value for m in at.markdown)
