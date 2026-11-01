@@ -766,3 +766,26 @@ profile form is on Profile).
   matching dark palette", made on the branch `ui-redesign`, merged into `main` (fast-forward) and pushed to GitHub.
 - Files: `app.py`, `.streamlit/config.toml`, `.claude/launch.json`, 8 test files. The old dark/red theme is still in
   git history (commit `46e78dd`) if it is ever needed.
+
+### 17.10 Hosting on Vercel: test deploy prepared (2026-11-01)
+
+Decision: try Vercel first with a test deploy, before moving the database to Postgres. Railway (about $12-15 a month) stays the fallback if Streamlit doesn't work well there.
+
+Why a test first: the app needs a running server and a live connection. Vercel now runs Docker images (Container Runtime) and WebSockets, but both are in beta. Vercel's limits that matter:
+- Instances scale down after 5 minutes without traffic (30 seconds on preview deployments), so test on the production deployment.
+- Data on the instance is temporary and not shared between instances, so `data/app.db` can't be kept there. Real use needs a hosted database (for example Neon Postgres) and the sign-in secret as a setting.
+- Live connections close at the function's maximum duration: 5 minutes on the free Hobby plan, up to 30 minutes on Pro. The reconnect can reach another instance. The signed sign-in link should survive this, but open forms could reset. Only a real deploy can show how bad this is.
+
+Changes for the test (not yet on GitHub):
+- `Dockerfile`: listens on `$PORT` (default 8501 for Docker Compose and other hosts) and never contacts Hugging Face at runtime (`HF_HUB_OFFLINE`, `TRANSFORMERS_OFFLINE`), since the models are in the image.
+- `vercel.json`: Container preset, Frankfurt region (`fra1`, the closest common region to Egypt).
+
+Tested locally with the Vercel free plan's limits (Docker, 2 GB memory, 1 CPU, throwaway database):
+- Image builds: 3.52 GB, within Vercel's limits (15 GB, 2 million files; the Python packages are about 44,000 files).
+- Server answers within 1 second; models ready in about 20 seconds on 1 CPU. So a visitor after an idle period waits about 20 seconds here; Vercel may differ.
+- Sign-up and a full 7-day plan work. Peak memory 0.46 GB of the 2 GB limit, but that plan had no preferences text, so the embedding model wasn't loaded. With preferences text the peak was 0.96 GB on Windows, not measured in the container.
+- Not tested in the container: reopening the sign-in link, PDF download.
+
+Settings the Vercel project needs: `PORT=8501` and, for the test only, `NUTRI_DB_PATH=/tmp/nutriplan/app.db`. Test data is thrown away whenever the app restarts: no real profiles on the test site.
+
+Still to check on the real deploy: does Streamlit's live connection work, what happens at the 5-minute disconnect, how long the wait after idle really is, do downloads (PDF) work. If it passes, next step: move the database to Postgres.

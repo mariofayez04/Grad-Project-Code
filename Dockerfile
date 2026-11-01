@@ -1,4 +1,4 @@
-# Container for Hugging Face Spaces (Docker SDK). Also works on any Docker host.
+# Container for Vercel (Container Runtime), Hugging Face Spaces (Docker SDK) and any other Docker host.
 FROM python:3.13-slim
 
 # Hugging Face Spaces run the container as user 1000.
@@ -19,7 +19,12 @@ ENV HOME=/home/user \
 RUN python -c "from transformers import pipeline; pipeline('ner', model='Dizex/FoodBaseBERT-NER'); \
 from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 
+# The models are in the image now: never contact Hugging Face at runtime (faster start, no network failures).
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+
 COPY --chown=user . .
 
 EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true", "--server.fileWatcherType=none"]
+# Listens on $PORT when the host sets it (Vercel: set PORT=8501 in the project settings), otherwise on 8501.
+CMD ["sh", "-c", "exec streamlit run app.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none"]
