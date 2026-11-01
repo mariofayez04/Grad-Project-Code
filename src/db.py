@@ -1,4 +1,7 @@
-"""Phase 6: SQLite storage for users, weekly plans and the eaten / not-eaten checkboxes.
+"""Phase 6: storage for users, weekly plans and the eaten / not-eaten checkboxes.
+
+SQLite on your own computer (data/app.db). With the DATABASE_URL setting: Postgres, for hosts whose disk isn't
+kept, such as Vercel. The queries below are written for both.
 
 Tables
   users       one row per person (profile + free-text preferences + hashed PIN for signing in)
@@ -19,6 +22,7 @@ import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import datetime, timedelta
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -132,8 +136,49 @@ def db_path():
     return Path(os.environ.get("NUTRI_DB_PATH", DB_PATH))
 
 
+def database_url():
+    """The hosted Postgres database, if this server has one."""
+    return os.environ.get("DATABASE_URL", "")
+
+
+def _postgres_schema():
+    """SCHEMA in Postgres types. Names stay unique ignoring case, as COLLATE NOCASE does in SQLite."""
+    schema = (SCHEMA.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "BIGSERIAL PRIMARY KEY")
+              .replace(" COLLATE NOCASE", "").replace(" INTEGER", " BIGINT")
+              .replace(" REAL", " DOUBLE PRECISION").replace(" BLOB", " BYTEA"))
+    return schema + "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name ON users (lower(name));"
+
+
+@lru_cache(maxsize=1)
+def _postgres_pool(url):
+    """Connections are kept open, because each page refresh runs many queries. The check replaces a connection
+    the database closed while idle. prepare_threshold=None: needed by connection poolers such as Neon's."""
+    from psycopg.rows import dict_row
+    from psycopg_pool import ConnectionPool
+    return ConnectionPool(url, min_size=1, max_size=5, open=True, check=ConnectionPool.check_connection,
+                          kwargs={"row_factory": dict_row, "prepare_threshold": None})
+
+
+class _PostgresConnection:
+    """The two sqlite3 calls the queries below use, on a Postgres connection."""
+
+    def __init__(self, con):
+        self.con = con
+
+    def execute(self, sql, params=()):
+        return self.con.execute(sql.replace("?", "%s"), params or None)
+
+    def executemany(self, sql, rows):
+        with self.con.cursor() as cur:
+            cur.executemany(sql.replace("?", "%s"), rows)
+
+
 @contextmanager
 def connect():
+    if database_url():
+        with _postgres_pool(database_url()).connection() as con:  # commits at the end, undoes everything on an error
+            yield _PostgresConnection(con)
+        return
     path = db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(path)
@@ -146,14 +191,27 @@ def connect():
         con.close()
 
 
+def _read_sql(query, params=()):
+    """Result of a query as a DataFrame."""
+    with connect() as con:
+        cur = con.execute(query, params)
+        columns = [c[0] for c in cur.description]
+        rows = [tuple(dict(r).values()) for r in cur.fetchall()]
+    return pd.DataFrame.from_records(rows, columns=columns, coerce_float=True)
+
+
 def init_db():
     with connect() as con:
-        con.executescript(SCHEMA)
-        for table, cols in MIGRATIONS.items():
-            have = {r["name"] for r in con.execute(f"PRAGMA table_info({table})")}
-            for col, decl in cols.items():
-                if col not in have:
-                    con.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
+        if database_url():
+            con.execute("SELECT pg_advisory_xact_lock(727401)")  # several servers can start at the same time
+            con.execute(_postgres_schema())
+        else:
+            con.executescript(SCHEMA)
+            for table, cols in MIGRATIONS.items():
+                have = {r["name"] for r in con.execute(f"PRAGMA table_info({table})")}
+                for col, decl in cols.items():
+                    if col not in have:
+                        con.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
         # Profiles from before weight tracking: their profile weight becomes the first entry.
         con.execute("INSERT INTO weights (user_id, day, weight_kg, created_at) SELECT id, substr(created_at, 1, 10), "
                     "weight_kg, created_at FROM users WHERE id NOT IN (SELECT user_id FROM weights)")
@@ -170,22 +228,22 @@ def save_user(profile):
     person's profile by typing their name."""
     data = {f: getattr(profile, f) for f in PROFILE_FIELDS}
     with connect() as con:
-        row = con.execute("SELECT id FROM users WHERE name = ?", (data["name"],)).fetchone()
+        row = con.execute("SELECT id FROM users WHERE lower(name) = lower(?)", (data["name"],)).fetchone()
         if row:
             sets = ", ".join(f"{f} = ?" for f in PROFILE_FIELDS)
             con.execute(f"UPDATE users SET {sets}, updated_at = ? WHERE id = ?", (*data.values(), _now(), row["id"]))
             return row["id"]
         cols = ", ".join(PROFILE_FIELDS)
-        cur = con.execute(f"INSERT INTO users ({cols}, created_at, updated_at) VALUES ({', '.join('?' * len(data))}, ?, ?)",
-                          (*data.values(), _now(), _now()))
-        return cur.lastrowid
+        cur = con.execute(f"INSERT INTO users ({cols}, created_at, updated_at) VALUES ({', '.join('?' * len(data))}, ?, ?) "
+                          "RETURNING id", (*data.values(), _now(), _now()))
+        return cur.fetchone()["id"]
 
 
 def create_user(profile, pin):
     """New user with a PIN. Raises ValueError if the PIN is invalid or the name is already taken."""
     validate_pin(pin)
     with connect() as con:
-        if con.execute("SELECT 1 FROM users WHERE name = ?", (profile.name,)).fetchone():
+        if con.execute("SELECT 1 FROM users WHERE lower(name) = lower(?)", (profile.name,)).fetchone():
             raise ValueError(f"The name '{profile.name}' is already taken. Sign in, or choose another name.")
     user_id = save_user(profile)
     set_pin(user_id, pin)
@@ -223,7 +281,7 @@ def verify_pin(name, pin):
     """Check a sign-in. Returns (status, user_id): status is "ok", "no_pin" (profile made before PINs existed,
     the user must create one), "wrong" (unknown name or wrong PIN - not told apart) or "locked"."""
     with connect() as con:
-        row = con.execute("SELECT * FROM users WHERE name = ?", ((name or "").strip(),)).fetchone()
+        row = con.execute("SELECT * FROM users WHERE lower(name) = lower(?)", ((name or "").strip(),)).fetchone()
         if row is None:
             return "wrong", None
         if row["locked_until"] and datetime.fromisoformat(row["locked_until"]) > datetime.now():
@@ -247,7 +305,10 @@ def has_pin(user_id):
 
 
 def _secret():
-    """Server secret for sign-in links, created once next to the database (data/secret.key)."""
+    """Server secret for sign-in links. With a hosted database it comes from the database URL, which every server
+    of the app shares and which stays out of the database. Otherwise: created once next to the database (data/secret.key)."""
+    if database_url():
+        return hashlib.sha256(f"nutriplan sign-in links:{database_url()}".encode()).digest()
     path = db_path().parent / "secret.key"
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -288,14 +349,14 @@ def get_user(user_id):
 def save_plan(user_id, plan, targets, prefs, seed=None, taste_vector=None):
     """Store a WeekPlan. Returns the plan id."""
     with connect() as con:
-        week = con.execute("SELECT COALESCE(MAX(week_number), 0) + 1 FROM plans WHERE user_id = ?", (user_id,)).fetchone()[0]
+        week = con.execute("SELECT COALESCE(MAX(week_number), 0) + 1 AS week FROM plans WHERE user_id = ?", (user_id,)).fetchone()["week"]
         targets_json = json.dumps({k: v for k, v in asdict(targets).items()})
         prefs_json = json.dumps(prefs.summary())
         blob = None if taste_vector is None else np.asarray(taste_vector, dtype=np.float32).tobytes()
         cur = con.execute(
             "INSERT INTO plans (user_id, week_number, seed, targets_json, prefs_json, taste_vector, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)", (user_id, week, seed, targets_json, prefs_json, blob, _now()))
-        plan_id = cur.lastrowid
+            "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id", (user_id, week, seed, targets_json, prefs_json, blob, _now()))
+        plan_id = cur.fetchone()["id"]
         rows = plan.to_dataframe()
         con.executemany(
             "INSERT INTO plan_items (plan_id, day_index, day, slot, fdc_id, name, grams, calories, protein_g, carbs_g, fat_g) "
@@ -326,16 +387,14 @@ def list_plans(user_id):
 
 
 def plan_items(plan_id):
-    with connect() as con:
-        return pd.read_sql_query("SELECT * FROM plan_items WHERE plan_id = ? ORDER BY day_index, id", con, params=(plan_id,))
+    return _read_sql("SELECT * FROM plan_items WHERE plan_id = ? ORDER BY day_index, id", (plan_id,))
 
 
 def user_history(user_id, finished_only=True):
     """All plan items of a user's weeks, with the week number (input for the feedback loop)."""
     query = ("SELECT pi.*, p.week_number FROM plan_items pi JOIN plans p ON p.id = pi.plan_id WHERE p.user_id = ?"
              + (" AND p.finished = 1" if finished_only else "") + " ORDER BY p.week_number, pi.day_index, pi.id")
-    with connect() as con:
-        return pd.read_sql_query(query, con, params=(user_id,))
+    return _read_sql(query, (user_id,))
 
 
 def set_meal_eaten(plan_id, day_index, slot, eaten):
@@ -352,7 +411,8 @@ def replace_item(item_id, item):
     with connect() as con:
         old = con.execute("SELECT plan_id, day_index, slot, fdc_id, name FROM plan_items WHERE id = ?", (item_id,)).fetchone()
         con.execute("INSERT INTO swaps (plan_id, day_index, slot, old_fdc_id, old_name, new_fdc_id, created_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)", (*old, int(item.fdc_id), _now()))
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)", (old["plan_id"], old["day_index"], old["slot"], old["fdc_id"], old["name"],
+                                                     int(item.fdc_id), _now()))
         con.execute("UPDATE plan_items SET fdc_id = ?, name = ?, grams = ?, calories = ?, protein_g = ?, carbs_g = ?, "
                     "fat_g = ? WHERE id = ?", (int(item.fdc_id), item.name, float(item.grams), float(item.calories),
                                                float(item.protein_g), float(item.carbs_g), float(item.fat_g), item_id))
@@ -362,8 +422,7 @@ def user_swaps(user_id, finished_only=True):
     """Every swap of a user's weeks, with the week number (input for the feedback loop)."""
     query = ("SELECT s.*, p.week_number FROM swaps s JOIN plans p ON p.id = s.plan_id WHERE p.user_id = ?"
              + (" AND p.finished = 1" if finished_only else "") + " ORDER BY s.id")
-    with connect() as con:
-        return pd.read_sql_query(query, con, params=(user_id,))
+    return _read_sql(query, (user_id,))
 
 
 def replace_meal(plan_id, day_index, day, slot, items):
@@ -392,8 +451,7 @@ def user_choices(user_id, finished_only=True):
     (chosen / rejected = [{fdc_id, name}] of the version kept / not kept)."""
     query = ("SELECT c.*, p.week_number FROM choices c JOIN plans p ON p.id = c.plan_id WHERE p.user_id = ?"
              + (" AND p.finished = 1" if finished_only else "") + " ORDER BY c.id")
-    with connect() as con:
-        df = pd.read_sql_query(query, con, params=(user_id,))
+    df = _read_sql(query, (user_id,))
     current, new = df["current_foods"].map(json.loads), df["new_foods"].map(json.loads)
     df["chosen"] = [n if k == "new" else c for k, c, n in zip(df["kept"], current, new)]
     df["rejected"] = [c if k == "new" else n for k, c, n in zip(df["kept"], current, new)]
@@ -424,8 +482,7 @@ def log_weight(user_id, weight_kg, day=None):
 
 def weight_history(user_id):
     """All logged weights of a user, oldest first (columns day, weight_kg)."""
-    with connect() as con:
-        return pd.read_sql_query("SELECT day, weight_kg FROM weights WHERE user_id = ? ORDER BY day", con, params=(user_id,))
+    return _read_sql("SELECT day, weight_kg FROM weights WHERE user_id = ? ORDER BY day", (user_id,))
 
 
 def delete_weight(user_id, day):
@@ -465,16 +522,16 @@ def get_survey(plan_id):
 def pilot_data():
     """Everything the evaluation needs from real use, without names or profiles:
     (items of finished weeks with user / week, surveys, swaps per plan, choices per plan, weights per user)."""
+    items = _read_sql("SELECT p.user_id, p.week_number, pi.day_index, pi.slot, pi.fdc_id, pi.eaten "
+                      "FROM plan_items pi JOIN plans p ON p.id = pi.plan_id WHERE p.finished = 1")
+    surveys = _read_sql("SELECT s.liked, s.portions, s.easy, s.would_use, s.comment, p.user_id, p.week_number "
+                        "FROM surveys s JOIN plans p ON p.id = s.plan_id")
+    swaps = _read_sql("SELECT plan_id, COUNT(*) AS n FROM swaps GROUP BY plan_id")
+    choices = _read_sql("SELECT plan_id, kept FROM choices")
+    weights = _read_sql("SELECT user_id, COUNT(*) AS n FROM weights GROUP BY user_id")
     with connect() as con:
-        items = pd.read_sql_query("SELECT p.user_id, p.week_number, pi.day_index, pi.slot, pi.fdc_id, pi.eaten "
-                                  "FROM plan_items pi JOIN plans p ON p.id = pi.plan_id WHERE p.finished = 1", con)
-        surveys = pd.read_sql_query("SELECT s.liked, s.portions, s.easy, s.would_use, s.comment, p.user_id, p.week_number "
-                                    "FROM surveys s JOIN plans p ON p.id = s.plan_id", con)
-        swaps = pd.read_sql_query("SELECT plan_id, COUNT(*) AS n FROM swaps GROUP BY plan_id", con)
-        choices = pd.read_sql_query("SELECT plan_id, kept FROM choices", con)
-        weights = pd.read_sql_query("SELECT user_id, COUNT(*) AS n FROM weights GROUP BY user_id", con)
-        n_users = con.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        n_plans = con.execute("SELECT COUNT(*) FROM plans").fetchone()[0]
+        n_users = con.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"]
+        n_plans = con.execute("SELECT COUNT(*) AS n FROM plans").fetchone()["n"]
     return {"users": n_users, "plans": n_plans, "items": items, "surveys": surveys, "swaps": swaps, "choices": choices,
             "weights": weights}
 

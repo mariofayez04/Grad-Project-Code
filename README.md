@@ -109,6 +109,26 @@ See [data/evaluation/results.md](data/evaluation/results.md) for the numbers use
 3. Tell testers the app is for education only, ask for their OK to use their anonymous answers in the report, and
    run it on one PC (or the local Docker app) so everyone's data is in the same `data/app.db`.
 
+## Host on Vercel
+
+The project is ready for Vercel's Container Runtime (`Dockerfile`, `vercel.json`). Vercel doesn't keep files on its
+servers, so accounts and plans need a hosted Postgres database. Without one, every restart deletes them.
+
+1. Create a free Postgres database, for example at neon.tech, in a European region (the app runs in Frankfurt), and
+   copy its connection string.
+2. Import this GitHub repository in Vercel and set these environment variables:
+   - `PORT` = `8501`
+   - `DATABASE_URL` = the connection string
+3. Deploy, and use the production address (preview deployments shut down after 30 seconds without traffic).
+
+With `DATABASE_URL` set the app creates its tables by itself and uses Postgres. Without it, it uses `data/app.db`.
+
+Note: Vercel's free plan closes the live connection after 5 minutes and stops idle servers. The page reconnects and
+stays signed in, but it can take about 20 seconds when a new server has to start, and a half-filled form is lost.
+
+To run the tests on Postgres, point them at a throwaway database (every test wipes it):
+`TEST_DATABASE_URL=postgresql://... python -m pytest tests -q`
+
 ## Deploy for free (Hugging Face Spaces)
 
 1. Create a free account at huggingface.co and a new **Space** → SDK **Docker** → blank template.

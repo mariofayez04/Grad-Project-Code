@@ -90,11 +90,11 @@ CSS = """
 [class*="st-key-card_"] h3, [class*="st-key-card_"] h2 { padding-top: 0; font-size: 1.4rem; }
 /* Buttons: primary green (theme), secondary white with a soft border */
 button[data-testid^="stBaseButton-secondary"], [data-testid="stPopoverButton"] {
-        background: var(--card); border: 1px solid var(--btn-line); color: var(--ink); font-weight: 600; min-height: 42px; }
+        background: var(--card); border: 1px solid var(--btn-line); color: var(--ink); font-weight: 600; min-height: 44px; }
 button[data-testid^="stBaseButton-secondary"]:hover, [data-testid="stPopoverButton"]:hover {
         background: var(--card); border-color: var(--green); color: var(--green); }
 button[data-testid^="stBaseButton-primary"] { font-weight: 600; min-height: 44px; }
-button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight: 600; }
+button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight: 600; min-height: 44px; }
 /* Top navigation */
 .st-key-nav [role="radiogroup"] { flex-wrap: wrap; row-gap: 4px; }
 .st-key-nav button { border: none !important; background: transparent !important; color: var(--muted) !important;
@@ -113,22 +113,25 @@ button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight:
 .st-key-account_mode [data-testid="stRadioOption"][data-selected="true"] { background: var(--card); box-shadow: 0 1px 2px rgba(21,32,28,.12); }
 .st-key-account_mode [data-testid="stRadioOption"][data-selected="true"] p { font-weight: 600; }
 /* Profile choices drawn as cards */
-[class*="st-key-pf_"] [role="radiogroup"] { gap: 8px; flex-wrap: wrap; width: 100%; }
+[class*="st-key-pf_"] [role="radiogroup"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr;
+        gap: 8px; width: 100%; }
 .st-key-page_profile [class*="st-key-pfsec_"] { background: var(--card); border: 1px solid var(--line); border-radius: 20px;
         padding: 20px 22px; }
 .st-key-card_auth [class*="st-key-pfsec_"] { border-top: 1px solid var(--line2); padding-top: 14px; }
-[class*="st-key-pf_"] [role="radiogroup"] > div { flex: 1 1 130px; margin: 0; display: flex; flex-direction: column;
-        justify-content: flex-start; border: 1px solid var(--btn-line); border-radius: 12px; padding: 10px 14px; background: var(--card); min-height: 44px; }
+[class*="st-key-pf_"] [role="radiogroup"] > div { margin: 0; display: flex; flex-direction: column; justify-content: flex-start;
+        border: 1px solid var(--btn-line); border-radius: 12px; padding: 12px 14px; background: var(--card); min-height: 44px; }
+[class*="st-key-pf_"] [role="radiogroup"] > div:has([data-testid="stRadioCaption"]) { min-height: 100px; }
 [class*="st-key-pf_"] [role="radiogroup"] > div[data-selected="true"] { border-color: var(--green); background: var(--select-bg);
         box-shadow: inset 0 0 0 1px var(--green); }
 [class*="st-key-pf_"] [data-testid="stRadioOption"] { width: 100%; margin: 0; }
-[class*="st-key-pf_"] [role="radiogroup"] > div > :not(label) { margin: 2px 0 0 26px; }
+[class*="st-key-pf_"] [data-testid="stRadioCaption"] { margin: 6px 0 0; padding: 0; }
+[class*="st-key-pf_"] [data-testid="stRadioCaption"] p { margin: 0; font-size: .82rem; line-height: 1.35; word-break: normal; overflow-wrap: normal; }
 [class*="st-key-pf_"] [data-testid="stRadioOption"][data-selected="true"] p { font-weight: 600; }
 [class*="st-key-pfmode_"] label { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%; }
 [class*="st-key-pfmode_"] label:has(input:checked) { border-color: var(--mint); background: var(--select-bg); }
 /* "Eaten" tick drawn as a pill */
 [class*="st-key-eat_"] label { border: 1px solid var(--btn-line); border-radius: 10px; padding: 8px 12px; background: var(--card);
-        width: 100%; min-height: 42px; align-items: center; }
+        width: 100%; min-height: 44px; align-items: center; }
 [class*="st-key-eat_"] label:has(input:checked), [class*="st-key-eat_"] label[data-selected="true"] {
         background: var(--green-soft); border-color: var(--mint); }
 [class*="st-key-eat_"] label:has(input:checked) p { color: var(--green-ink); font-weight: 600; }
@@ -179,13 +182,11 @@ button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight:
 .ring { display: flex; align-items: center; gap: 16px; }
 .ring-title { font-weight: 600; color: var(--ink); }
 /* Day summary */
-.day-tot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 22px; font-variant-numeric: tabular-nums; color: var(--ink2); }
-.day-tot .t { font-family: var(--heading); font-weight: 600; font-size: 1.05rem; color: var(--ink); }
-.day-tot .d { color: var(--muted); }
-.nut-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 8px; }
-.nut { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 999px; background: var(--wash);
-        border: 1px solid var(--line); font-size: .8rem; color: var(--ink2); }
-.nut b { color: var(--ink); } .nut small { color: var(--muted); font-size: .78rem; }
+table.tbl.tbl-day { min-width: 0; font-variant-numeric: tabular-nums; }
+.tbl-day td, .tbl-day tbody th, .tbl-day thead th { padding: 9px 14px; }
+.tbl-day td b { color: var(--ink); }
+.tbl-day .result { display: inline-flex; align-items: center; gap: 8px; }
+.tbl-day tr.first-micro td, .tbl-day tr.first-micro th { border-top: 2px solid var(--line); }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .76rem; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 /* Meal cards */
@@ -248,7 +249,13 @@ table.tbl { width: 100%; min-width: 720px; border-collapse: collapse; font-size:
 .step-d { font-size: .86rem; color: var(--muted); line-height: 1.5; }
 .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: .8rem; color: var(--muted);
         border-top: 1px solid var(--line); margin-top: 28px; padding-top: 18px; }
-@media (max-width: 640px) { .hero-title { font-size: 2.2rem; } .page-title { font-size: 1.9rem; } }
+@media (max-width: 640px) { .hero-title { font-size: 2.2rem; } .page-title { font-size: 1.9rem; }
+        table.tbl.tbl-day { font-size: .8rem; } .tbl-day td, .tbl-day tbody th, .tbl-day thead th { padding: 8px; } }
+/* Profile choices: one column when the form itself is narrow (phone, or the sign-up card next to the welcome text) */
+[class*="st-key-pf_"] { container-type: inline-size; }
+@container (max-width: 440px) {
+        [role="radiogroup"]:has([data-testid="stRadioOption"]) { grid-template-columns: minmax(0, 1fr) !important; }
+        [role="radiogroup"] > div:has([data-testid="stRadioCaption"]) { min-height: 72px !important; } }
 </style>
 """
 # Dark mode: the same names with deep green-black surfaces and lighter text and accents
@@ -499,7 +506,7 @@ def profile_form(user, targets=None):
                 st.markdown("**Health focus** (optional)")
                 current = parse_modes(u.get("health_modes"))
                 chosen = [m for m in HEALTH_MODES
-                          if st.checkbox(f"**{MODE_SHORT[m][0]}**  \n{MODE_SHORT[m][1]}", value=m in current, key=f"pfmode_{m}")]
+                          if st.checkbox(f"**{MODE_SHORT[m][0]}**  \n{MODE_SHORT[m][1]}", value=m in current, key=f"pfmode_{m}", width="stretch")]
                 st.caption("General guidance only. Follow your doctor's advice.")
                 egypt = list(EGYPTIAN_OPTIONS)
                 egyptian = st.radio("Egyptian dishes", egypt, index=egypt.index(u.get("egyptian_dishes") or "sometimes"),
@@ -619,18 +626,23 @@ def aim_text(target, unit):
     return ("at least " if target["kind"] == "min" else "under ") + fmt(target["value"], unit)
 
 
-def nutrient_pills(values, targets):
-    """Row of small pills: value (target) per nutrient, with a dot for its status."""
-    pills = []
-    for m in MICROS:
-        label, unit = LABELS[m]
-        t = targets[m]
-        aim = aim_text(t, unit)
-        pills.append(f'<span class="nut"><span class="dot" style="background:{STATUS[status(values[m], t)][1]}"></span>'
-                     f'{label} <b>{fmt(values[m], unit)}</b>' + (f' <small>{aim}</small>' if aim else "") + "</span>")
-    legend = "".join(f'<span><span class="dot" style="background:{STATUS[s][1]}"></span>{w}</span>'
-                     for s, w in (("ok", "On target"), ("close", "Close"), ("low", "A little under or over")))
-    return f'<div class="nut-row">{"".join(pills)}</div><div class="legend">{legend}</div>'
+def day_totals_table(tot, targets, nutrients, micros):
+    """The day against its targets: calories and macros, then the other nutrients (if known)."""
+    def row(name, amount, aim, color, result, css=""):
+        return (f'<tr class="{css}"><th scope="row">{name}</th><td><b>{amount}</b></td><td>{aim}</td><td><span class="result">'
+                f'<span class="dot" style="background:{color}"></span>{result}</span></td></tr>')
+    rows = []
+    for m, name, unit in (("calories", "Calories", " kcal"), ("protein_g", "Protein", " g"), ("carbs_g", "Carbs", " g"), ("fat_g", "Fat", " g")):
+        diff = tot[m] - targets[m]
+        color = "var(--ok)" if abs(diff) <= 0.05 * targets[m] else "var(--close)"
+        rows.append(row(name, f"{tot[m]:,.0f}{unit}", f"{targets[m]:,.0f}{unit}", color, delta_words(diff, unit)))
+    if nutrients is not None:
+        for i, m in enumerate(MICROS):
+            label, unit = LABELS[m]
+            word, color = STATUS[status(nutrients[m], micros[m])][:2]
+            rows.append(row(label, fmt(nutrients[m], unit), aim_text(micros[m], unit), color, word, "first-micro" if i == 0 else ""))
+    return ('<div class="tbl-wrap"><table class="tbl tbl-day"><thead><tr><th scope="col">Nutrient</th><th scope="col">This day</th>'
+            f'<th scope="col">Target</th><th scope="col">Result</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div>')
 
 
 def meals_done(items):
@@ -934,24 +946,6 @@ def show_week(plan, items):
     for d, tab in enumerate(tabs):
         day = items[items["day_index"] == d]
         with tab:
-            tot = day[MACROS].sum()
-            with st.container(key=f"card_day_{d}"):
-                left, right = st.columns([2.6, 1.3], vertical_alignment="center")
-                left.markdown(
-                    f'<div class="day-tot"><span class="t">{DAYS[d]} totals</span>'
-                    f'<span><b>{tot.calories:,.0f}</b> kcal <span class="d">({delta_words(tot.calories - targets["calories"])})</span></span>'
-                    + "".join(f'<span><b style="color:{col}">{tot[m]:.0f} g</b> {name} <span class="d">('
-                              f'{delta_words(tot[m] - targets[m], " g")})</span></span>'
-                              for m, name, col in (("protein_g", "protein", "var(--protein-ink)"), ("carbs_g", "carbs", "var(--carbs-ink)"),
-                                                   ("fat_g", "fat", "var(--fat-ink)")))
-                    + "</div>", unsafe_allow_html=True)
-                if right.button("New version of this day", key=f"newday_{plan['id']}_{d}", width="stretch",
-                                icon=":material/autorenew:",
-                                help="See a different plan for this whole day next to the current one, and keep the one you prefer."):
-                    propose(plan, items, d, None, preferences_text)
-                if d in nutrients.index:
-                    st.markdown(nutrient_pills(nutrients.loc[d], micros), unsafe_allow_html=True)
-
             for i, slot in enumerate(plan_slots(day)):
                 if i % 2 == 0:
                     cols = st.columns(2)  # one row per pair, in time order: breakfast | lunch, dinner | snack
@@ -972,6 +966,16 @@ def show_week(plan, items):
                     eaten = bool(meal["eaten"].fillna(0).max()) if not meal.empty else False
                     st.checkbox("Eaten", value=eaten, key=key, on_change=on_check, args=(plan["id"], d, slot, key),
                                 width="stretch")
+
+            with st.container(key=f"card_day_{d}"):
+                left, right = st.columns([2.6, 1.3], vertical_alignment="center")
+                left.markdown(f'<div class="card-title">{DAYS[d]} totals</div>', unsafe_allow_html=True)
+                if right.button("New version of this day", key=f"newday_{plan['id']}_{d}", width="stretch",
+                                icon=":material/autorenew:",
+                                help="See a different plan for this whole day next to the current one, and keep the one you prefer."):
+                    propose(plan, items, d, None, preferences_text)
+                st.markdown(day_totals_table(day[MACROS].sum(), targets, nutrients.loc[d] if d in nutrients.index else None, micros),
+                            unsafe_allow_html=True)
 
 
 @st.cache_data(show_spinner="Preparing the PDF...", max_entries=20)

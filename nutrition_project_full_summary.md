@@ -787,5 +787,32 @@ Tested locally with the Vercel free plan's limits (Docker, 2 GB memory, 1 CPU, t
 - Not tested in the container: reopening the sign-in link, PDF download.
 
 Settings the Vercel project needs: `PORT=8501` and, for the test only, `NUTRI_DB_PATH=/tmp/nutriplan/app.db`. Test data is thrown away whenever the app restarts: no real profiles on the test site.
+(Replaced by `DATABASE_URL`, see 17.11.)
 
 Still to check on the real deploy: does Streamlit's live connection work, what happens at the 5-minute disconnect, how long the wait after idle really is, do downloads (PDF) work. If it passes, next step: move the database to Postgres.
+
+### 17.11 Permanent accounts on the hosted site, totals table, equal choice cards (2026-11-01)
+
+The test deploy went live at `grad-project-code.vercel.app`. Feedback from using it:
+
+**Bug: signed out while scrolling, then "Wrong name or PIN." with the right PIN.**
+Cause: on Vercel the database file and the sign-in secret were on the server's temporary disk. When Vercel started a new server, the account was gone. On the user's PC no account had a failed PIN attempt, which fits: the failure was on the hosted site only.
+
+Fix, in `src/db.py`:
+- With the `DATABASE_URL` setting the app uses Postgres (`psycopg`, with a small connection pool). Without it, SQLite as before, so running on the PC doesn't change.
+- The queries are shared. Changes for Postgres: `RETURNING id` instead of `lastrowid`, column names instead of positions, `lower(name)` so names still ignore case, and one `_read_sql` helper instead of `pd.read_sql_query`. The schema is translated by `_postgres_schema()` (`BIGSERIAL`, `BIGINT`, `DOUBLE PRECISION`, `BYTEA`).
+- The sign-in link secret comes from the database URL when hosted, so every server shares it and a restart doesn't sign anyone out. No extra setting is needed. Changing the database password signs everyone out once.
+- `tests/conftest.py`: `TEST_DATABASE_URL` runs the whole test suite on Postgres.
+
+Tested on a throwaway Postgres in Docker: sign-up with preferences text, 7-day plan, Eaten tick, New meal, New version of this day; then the app and the database restarted. The same PIN still signs in (also with the name in lower case), the old sign-in link still works, and the tick is still there.
+
+Still needs one step by the user: create a free Postgres database and add `DATABASE_URL` in Vercel. Until then the hosted site keeps losing accounts. The hosted site itself is not retested yet.
+
+What this can't change: Vercel's free plan closes the live connection after 5 minutes and stops idle servers. After the fix that means a short reconnect and staying signed in, but up to about 20 seconds if a new server has to start, and a half-filled form or an open comparison is lost.
+
+**Choice buttons (profile and sign-up form).** Cards had different sizes, and the text was squeezed by a large indent ("Exercis-e"). Now every card in a group is the same size, with the description under the title:
+- Three equal columns; one column when the form is narrow. This uses a container query, because the sign-up card can be narrow on a wide screen.
+- Cards with a description are one height (100 px, 72 px in one column); cards without one (Biological sex, Egyptian dishes) share a shorter height.
+- The Health focus boxes are the same width, and action buttons are all 44 px high. The top menu stays at 40 px.
+
+**Day totals.** Moved from above the meals to below them, as a table: Nutrient, This day, Target, Result. Calories and macros come first, then the other nutrients. The dot is green within 5% of the target (the same rule as the comparison window) and yellow otherwise; the other nutrients keep their existing status. "New version of this day" moved with it.

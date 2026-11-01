@@ -175,10 +175,34 @@ def test_migration_adds_pin_columns(tmp_path, monkeypatch):
     con.execute("INSERT INTO users VALUES (1, 'Old', 30, 'male', 70, 175, 2, 'maintain', '', 'x', 'x')")
     con.commit()
     con.close()
+    monkeypatch.delenv("DATABASE_URL", raising=False)              # only SQLite files can be this old
     monkeypatch.setenv("NUTRI_DB_PATH", str(path))
     db.init_db()
     assert db.verify_pin("Old", "") == ("no_pin", 1)
     assert db.get_user(1)["meals_per_day"] == 4                   # profiles from before the setting keep 4 meals
+
+
+def test_hosted_sign_in_links_survive_a_new_server(tmp_path, monkeypatch):
+    """A hosted server has no lasting disk: the secret must not depend on a file, or a restart signs everyone out."""
+    monkeypatch.setenv("DATABASE_URL", "postgresql://example/db")
+    monkeypatch.setenv("NUTRI_DB_PATH", str(tmp_path / "first" / "t.db"))
+    first = db._secret()
+    monkeypatch.setenv("NUTRI_DB_PATH", str(tmp_path / "second" / "t.db"))
+    assert db._secret() == first
+    assert not (tmp_path / "first" / "secret.key").exists()
+
+
+def test_postgres_schema_has_no_sqlite_words():
+    schema = db._postgres_schema()
+    for word in ("AUTOINCREMENT", "COLLATE NOCASE", " REAL", " BLOB", " INTEGER"):
+        assert word not in schema
+
+
+def test_names_are_unique_ignoring_case(temp_db):
+    uid = db.create_user(UserProfile("Sara", 30, "female", 60, 165, 2, "maintain", ""), "1234")
+    assert db.verify_pin("SARA", "1234") == ("ok", uid)
+    with pytest.raises(ValueError, match="taken"):
+        db.create_user(UserProfile("sara", 30, "female", 60, 165, 2, "maintain", ""), "1234")
 
 
 def test_app_link_without_token_is_not_signed_in(temp_db):
