@@ -848,3 +848,14 @@ Why: Egypt's Law No. 151 of 2020 treats health data as sensitive, and summaries 
 - **Delete my account:** at the bottom of the Profile page. It asks for the PIN and a confirmation, then removes the profile, plans, foods, swaps, choices, weights and ratings (`db.delete_user`, `ON DELETE CASCADE`). Wrong PINs count towards the lock.
 - **Hosted database upgrade:** `init_db` didn't add new columns on Postgres, so this column could have crashed the live site. It now runs `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`. Tested on a throwaway Postgres built from the schema of the deployed version: the column is added, the user is kept, and starting twice is fine.
 - Tests: 267 -> 270. A database provider may keep backups for a while after a delete; this was not checked for Neon.
+
+### 17.14 Allergy checklist (2026-11-02)
+
+Why: free text blocked only 68.8% of allergy items on sentences kept apart (17.12), and no list of phrases can cover every wording.
+
+- **Profile:** ten tick boxes (milk, egg, peanut, tree nuts, fish, shellfish, soy, wheat, gluten, sesame) or "I have no food allergies". One answer is required. Saved in `users.allergies`.
+- **Rule:** a ticked group is always blocked, with no language model involved (`parse_preferences(text, allergies=...)`). Plans, swaps, typed swap searches and new meals all respect it. Free text stays for likes, dislikes and other allergies.
+- **Older accounts:** answer once at the next sign-in. A ticked allergy rebuilds their plan; "no allergies" keeps it.
+- **Measured** (`python -m src.testers --checklist`, `data/evaluation/checklist_results.md`): 15 people who only ticked boxes, 1 week each: 0 of 1,239 items contained a ticked allergen, 1.9% calorie error. With the matching box ticked, set 3 goes from 22 / 32 to 32 / 32, which is true by design and assumes people tick correctly. The kiwi allergy in set 3 is outside the list and still depends on the text.
+- Report screenshots retaken with a neutral test account.
+- Tests: 270 -> 281.

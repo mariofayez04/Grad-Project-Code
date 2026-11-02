@@ -144,3 +144,25 @@ def test_unclear_health_wording_is_flagged():
 def test_favism_blocks_fava_dishes(foods):
     allowed, _ = apply_to_foods(foods, parse_preferences("I have favism"))
     assert not allowed["description"].str.contains("fava|broadbean|ful medames", case=False).any()
+
+
+# --- allergy checklist: a ticked group is blocked, whatever is typed ----------------------------------------------
+@pytest.mark.parametrize("text", ["", "I love chicken", "I love shrimp", "no allergies"])
+def test_ticked_allergy_is_always_blocked(text):
+    assert "shellfish" in parse_preferences(text, allergies="shellfish|peanut").block_groups
+
+
+def test_ticked_wheat_and_gluten_go_together():
+    assert {"wheat", "gluten"} <= parse_preferences("", allergies="wheat").block_groups
+    assert {"wheat", "gluten"} <= parse_preferences("I love rice", allergies="gluten").block_groups
+
+
+def test_ticked_allergies_remove_the_foods(foods):
+    allowed, _ = apply_to_foods(foods, parse_preferences("", allergies="milk|sesame"))
+    tags = allowed["allergens"].fillna("").str.split("|").map(set)
+    assert not tags.map(lambda t: bool(t & {"milk", "sesame"})).any()
+
+
+def test_nothing_ticked_changes_nothing():
+    assert parse_preferences("I love rice", allergies="").block_groups == parse_preferences("I love rice").block_groups
+    assert parse_preferences("I love rice", allergies=None).block_groups == set()

@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS users (
     failed_logins INTEGER NOT NULL DEFAULT 0,
     locked_until TEXT,
     consented_at TEXT,           -- when the person agreed to their data being stored; NULL = must be asked
+    allergies TEXT,              -- ticked allergen groups, "milk|peanut"; "" = none; NULL = must be asked
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -120,11 +121,12 @@ CREATE INDEX IF NOT EXISTS idx_items_plan ON plan_items(plan_id, day_index, slot
 """
 
 PROFILE_FIELDS = ["name", "age", "sex", "weight_kg", "height_cm", "activity_level", "goal", "preferences_text",
-                  "meals_per_day", "health_modes", "egyptian_dishes"]
+                  "meals_per_day", "health_modes", "egyptian_dishes", "allergies"]
 # Columns added after the first release; init_db adds them to an existing database.
 MIGRATIONS = {"users": {"meals_per_day": "INTEGER NOT NULL DEFAULT 4", "health_modes": "TEXT NOT NULL DEFAULT ''",
                         "egyptian_dishes": "TEXT NOT NULL DEFAULT 'sometimes'", "pin_hash": "TEXT", "pin_salt": "TEXT", "failed_logins": "INTEGER NOT NULL DEFAULT 0",
-                        "locked_until": "TEXT", "consented_at": "TEXT"}}
+                        "locked_until": "TEXT", "consented_at": "TEXT",
+                        "allergies": "TEXT"}}
 
 PIN_RE = re.compile(r"^\d{4,8}$")
 PIN_ITERATIONS = 200_000   # PBKDF2 rounds: slow to brute-force a stolen database
@@ -261,6 +263,12 @@ def record_consent(user_id):
     """The person agreed to their data being stored, now."""
     with connect() as con:
         con.execute("UPDATE users SET consented_at = ? WHERE id = ?", (_now(), user_id))
+
+
+def set_allergies(user_id, allergies):
+    """The person's answer to the allergy checklist: allergen groups joined by |, or "" for none."""
+    with connect() as con:
+        con.execute("UPDATE users SET allergies = ?, updated_at = ? WHERE id = ?", (allergies, _now(), user_id))
 
 
 def delete_user(user_id):

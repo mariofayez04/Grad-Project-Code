@@ -1,0 +1,25 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0
+rootdir: E:\Aou\A\Grade Project A\Project Code
+plugins: anyio-4.15.1
+collected 281 items
+
+tests\test_allergens.py .....................................            [ 13%]
+tests\test_app.py .......................                                [ 21%]
+tests\test_calculator.py .........................                       [ 30%]
+tests\test_diet_modes.py .............                                   [ 34%]
+tests\test_dishes.py ...........                                         [ 38%]
+tests\test_embeddings.py .......                                         [ 41%]
+tests\test_evaluation_tools.py ......                                    [ 43%]
+tests\test_feedback.py ............                                      [ 47%]
+tests\test_meals_per_day.py ...........                                  [ 51%]
+tests\test_nutrients.py ..............                                   [ 56%]
+tests\test_parser.py ................................................... [ 74%]
+...................                                                      [ 81%]
+tests\test_planner.py ................                                   [ 87%]
+tests\test_regenerate.py .........                                       [ 90%]
+tests\test_report.py ....                                                [ 91%]
+tests\test_shopping.py ...............                                   [ 97%]
+tests\test_weight.py ........                                            [100%]
+
+======================= 281 passed in 311.34s (0:05:11) =======================

@@ -15,6 +15,7 @@ Also scores the parser on three sets of sentences written by an AI assistant, no
     new_sentences_3.csv   written after the rules were frozen and scored once: the fair number for new wording
 
 Run:  python -m src.testers     (about 15 min)
+      python -m src.testers --checklist     (the allergy checklist alone, about 2 min)
 """
 import os
 import re
@@ -146,7 +147,7 @@ def run_week_actions(plan_id, plan, user, allowed, foods, emb, texts, rx, adhere
 def build(profile, foods, emb, seed, taste=None, penalties=None):
     """The same steps as build_plan in app.py."""
     targets = calculate_targets(profile)
-    prefs = parse_preferences(profile.preferences_text)
+    prefs = parse_preferences(profile.preferences_text, allergies=profile.allergies)
     allowed, _ = apply_to_foods(foods, prefs)
     taste = taste if taste is not None else taste_from_preferences(prefs)
     t0 = time.time()
@@ -285,8 +286,58 @@ that column is not an independent result either. It is one general rule, not new
     print(text)
 
 
+def checklist_report():
+    """Allergy checklist: plans for people who tick a group and type nothing, and the sentence sets with the box ticked."""
+    from src.allergens import ALLERGEN_GROUPS
+    from src.embeddings import FoodEmbeddings
+    from src.planner import generate_week_plan
+    foods = pd.read_csv(FOODS_CLEAN)
+    emb = FoodEmbeddings(foods)
+    tags = dict(zip(foods["fdc_id"], foods["allergens"].fillna("").str.split("|").map(set)))
+    picks = [g for g in ALLERGEN_GROUPS] + ["milk|egg", "peanut|tree_nut", "fish|shellfish", "wheat|sesame", "milk|egg|peanut|tree_nut|soy"]
+    rows = []
+    for i, pick in enumerate(picks):
+        profile = UserProfile(f"T{i}", 25 + i, "female" if i % 2 else "male", 62 + 2 * i, 160 + i, 2, ("maintain", "lose", "gain")[i % 3],
+                              "", allergies=pick)
+        plan, targets, prefs = generate_week_plan(profile, foods, emb, seed=i)
+        items = plan.to_dataframe()
+        wanted = set(pick.split("|")) | ({"wheat", "gluten"} if set(pick.split("|")) & {"wheat", "gluten"} else set())
+        days = items.groupby("day_index")["calories"].sum()
+        rows.append({"ticked": pick, "items": len(items), "allergen_items": sum(bool(tags[f] & wanted) for f in items["fdc_id"]),
+                     "calorie_error": round(float((days - targets.calories).abs().mean() / targets.calories * 100), 1)})
+    plans = pd.DataFrame(rows)
+    plans.to_csv(OUT / "checklist_plans.csv", index=False)
+
+    sets = []
+    for name, (file, _) in SENTENCE_SETS.items():
+        df = pd.read_csv(OUT / file, dtype=str).fillna("")
+        out, m = score(df)
+        items = out["allergy_expected"].sum()
+        outside = out["never_missed"].astype(bool) & (out["allergy_expected"] == 0)
+        sets.append({"Sentences": name, "Allergy items blocked, text alone": f"{out['allergy_blocked'].sum()} / {items}",
+                     "With the box ticked": f"{items} / {items}", "Named foods the checklist doesn't list, still missed": int(outside.sum())})
+    text = f"""# Allergy checklist
+
+## Plans for people who tick and type nothing ({len(plans)} people, 1 week each)
+- Food items served: {plans['items'].sum()}. Items containing a ticked allergen: **{plans['allergen_items'].sum()}**.
+- Mean calorie error: {plans['calorie_error'].mean():.1f}%.
+
+## Sentence sets, if the person also ticked the matching box
+{table(pd.DataFrame(sets))}
+
+The "with the box ticked" column is true by design: a ticked group is always blocked, whatever is typed. It assumes that people tick the
+right box, which has not been tested with real people. Allergies outside the 10 listed groups, such as kiwi, still depend on the free text.
+"""
+    (OUT / "checklist_results.md").write_text(text, encoding="utf-8")
+    print(text)
+
+
 def main():
     warnings.filterwarnings("ignore")
+    if "--checklist" in sys.argv:
+        sys.stdout.reconfigure(encoding="utf-8")
+        checklist_report()
+        return
     sys.stdout.reconfigure(encoding="utf-8")
     from src.embeddings import FoodEmbeddings
     foods = pd.read_csv(FOODS_CLEAN)

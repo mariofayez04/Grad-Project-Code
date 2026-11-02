@@ -1,0 +1,16 @@
+ticked,items,allergen_items,calorie_error
+milk,84,0,1.4
+egg,82,0,2.2
+peanut,86,0,1.7
+tree_nut,87,0,2.2
+shellfish,83,0,2.1
+fish,85,0,1.6
+soy,84,0,1.9
+wheat,74,0,2.4
+sesame,83,0,1.6
+gluten,87,0,1.2
+milk|egg,79,0,2.8
+peanut|tree_nut,82,0,2.1
+fish|shellfish,83,0,1.6
+wheat|sesame,78,0,1.9
+milk|egg|peanut|tree_nut|soy,82,0,1.6

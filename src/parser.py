@@ -22,6 +22,9 @@ Safety layer (added after testing on wording the rules were not built with):
    No list of phrases can cover every wording: on sentences kept apart from the rules, 68.8% of allergy items were
    blocked (data/evaluation/simulated_testers.md), so asking is part of the safety design.
 
+The allergy checklist in the profile (argument `allergies`) needs no language model at all: a ticked group is always
+blocked. Free text remains for likes, dislikes and allergies the checklist doesn't list.
+
 Run a demo:  python -m src.parser "I hate mushrooms and I'm allergic to shrimp"
 """
 import re
@@ -370,6 +373,12 @@ def classify(clause, s, e):
     return "unknown", ""
 
 
+def _link_gluten(prefs):
+    """Wheat and gluten are blocked together."""
+    if prefs.block_groups & {"wheat", "gluten"}:
+        prefs.block_groups |= {"wheat", "gluten"}
+
+
 def _part_around(clause, s, e):
     """The piece of a clause between the commas around a food."""
     end = clause.find(",", e)
@@ -393,9 +402,14 @@ def health_upgrade(clause, s, e, label, cue):
     return label, cue
 
 
-def parse_preferences(text, use_ner=True, use_dict=True):
+def parse_preferences(text, use_ner=True, use_dict=True, allergies=""):
+    """allergies: groups ticked in the checklist, joined by | (e.g. "milk|peanut"). They are always blocked."""
     prefs = Preferences()
+    for group in filter(None, (allergies or "").split("|")):
+        prefs.mentions.append(Mention(group, "block", "checklist", "checklist", {group}))
+        prefs.block_groups.add(group)
     if not text or not text.strip():
+        _link_gluten(prefs)
         return prefs
     text, prefs.corrections = fix_spelling(NOT_A_PROBLEM_RE.sub("fine with", text))
 
@@ -482,10 +496,7 @@ def parse_preferences(text, use_ner=True, use_dict=True):
         if (HEALTH_WORD_RE.search(clause) and not NO_ALLERGY_RE.search(clause) and not blocked_here) or UNHANDLED_RE.search(clause):
             prefs.unclear.append(clause.strip())
     prefs.unclear = list(dict.fromkeys(prefs.unclear))
-    if "wheat" in prefs.block_groups:
-        prefs.block_groups.add("gluten")
-    if "gluten" in prefs.block_groups:
-        prefs.block_groups.add("wheat")
+    _link_gluten(prefs)
     return prefs
 
 

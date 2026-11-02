@@ -57,6 +57,7 @@ class UserProfile:
     meals_per_day: int = DEFAULT_MEALS  # 3, 4 or 5
     health_modes: str = ""              # "", "diabetes", "low_sodium" or "diabetes|low_sodium" (Feature #10)
     egyptian_dishes: str = "sometimes"  # "often" / "sometimes" / "never" (Feature #9)
+    allergies: str = ""                 # ticked allergen groups, "milk|peanut"; "" = none (safer than free text alone)
 
 
 @dataclass

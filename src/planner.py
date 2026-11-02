@@ -659,7 +659,7 @@ def generate_week_plan(profile, foods=None, embeddings=None, taste_vector=None, 
 
     foods = foods if foods is not None else pd.read_csv(FOODS_CLEAN)
     targets = calculate_targets(profile)
-    prefs = parse_preferences(profile.preferences_text)
+    prefs = parse_preferences(profile.preferences_text, allergies=profile.allergies)
     allowed, _ = apply_to_foods(foods, prefs)
     if taste_vector is None:
         taste_vector = taste_from_preferences(prefs)

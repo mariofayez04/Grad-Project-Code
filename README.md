@@ -86,7 +86,7 @@ The port is bound to `127.0.0.1`, so only this PC can reach the app.
 ## Tests and evaluation
 
 ```bash
-python -m pytest tests -q     # 270 tests (~5 min)
+python -m pytest tests -q     # 281 tests (~5 min)
 python -m src.evaluate        # writes data/evaluation/results.md (~10-15 min)
 python -m src.simulate        # feedback-loop experiment only
 python -m src.heldout         # held-out sentences only

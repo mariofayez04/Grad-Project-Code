@@ -105,6 +105,7 @@ def test_app_log_weight_and_rebuild(temp_db):
     at = AppTest.from_file("../app.py", default_timeout=180).run()
     at.radio[0].set_value("New user").run()
     at.checkbox(key="pf_consent").check()
+    at.checkbox(key="pfallergy_none").check()
     at.text_input[0].input("Walid")
     at.text_input[1].input("1234")
     at.text_input[2].input("1234")

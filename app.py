@@ -127,8 +127,8 @@ button[data-testid^="stBaseButton-tertiary"] { color: var(--green); font-weight:
 [class*="st-key-pf_"] [data-testid="stRadioCaption"] { margin: 6px 0 0; padding: 0; }
 [class*="st-key-pf_"] [data-testid="stRadioCaption"] p { margin: 0; font-size: .82rem; line-height: 1.35; word-break: normal; overflow-wrap: normal; }
 [class*="st-key-pf_"] [data-testid="stRadioOption"][data-selected="true"] p { font-weight: 600; }
-[class*="st-key-pfmode_"] label { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%; }
-[class*="st-key-pfmode_"] label:has(input:checked) { border-color: var(--mint); background: var(--select-bg); }
+[class*="st-key-pfmode_"] label, [class*="st-key-pfallergy_"] label { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%; }
+[class*="st-key-pfmode_"] label:has(input:checked), [class*="st-key-pfallergy_"] label:has(input:checked) { border-color: var(--mint); background: var(--select-bg); }
 /* "Eaten" tick drawn as a pill */
 [class*="st-key-eat_"] label { border: 1px solid var(--btn-line); border-radius: 10px; padding: 8px 12px; background: var(--card);
         width: 100%; min-height: 44px; align-items: center; }
@@ -330,10 +330,15 @@ def load_resources():
 
 
 @st.cache_data(show_spinner=False)
-def allowed_foods(preferences_text, modes=""):
+def allowed_foods(preferences_text, modes="", allergies=""):
     """Foods left after the user's allergies, diet and diet modes (same filters the planner used)."""
     foods, _ = load_resources()
-    return filter_modes(apply_to_foods(foods, parse_preferences(preferences_text))[0], modes)
+    return filter_modes(apply_to_foods(foods, parse_preferences(preferences_text, allergies=allergies))[0], modes)
+
+
+def plan_allergies(plan):
+    """Allergen groups the plan was built without, including ticked ones. New meals and swaps stay within them."""
+    return "|".join(plan["prefs"].get("block_allergen_groups", []))
 
 
 def _other_bases(fdc_id, day_ids):
@@ -343,17 +348,17 @@ def _other_bases(fdc_id, day_ids):
 
 
 @st.cache_data(show_spinner="Finding similar foods...")
-def swap_choices(fdc_id, slot, calories, preferences_text, day_ids, modes=""):
+def swap_choices(fdc_id, slot, calories, preferences_text, day_ids, modes="", allergies=""):
     """Ranked replacement foods for one item of a meal (same component, similar food, same calories)."""
     _, emb = load_resources()
-    return swap_options(fdc_id, slot, calories, allowed_foods(preferences_text, modes), emb, _other_bases(fdc_id, day_ids))
+    return swap_options(fdc_id, slot, calories, allowed_foods(preferences_text, modes, allergies), emb, _other_bases(fdc_id, day_ids))
 
 
 @st.cache_data(show_spinner="Searching foods...")
-def search_choices(query, fdc_id, slot, calories, preferences_text, day_ids, modes=""):
+def search_choices(query, fdc_id, slot, calories, preferences_text, day_ids, modes="", allergies=""):
     """Replacement foods matching what the user typed. Returns (items, best match score)."""
     _, emb = load_resources()
-    return search_swap(query, fdc_id, slot, calories, allowed_foods(preferences_text, modes), emb,
+    return search_swap(query, fdc_id, slot, calories, allowed_foods(preferences_text, modes, allergies), emb,
                        _other_bases(fdc_id, day_ids))
 
 
@@ -367,7 +372,7 @@ def swap_kind(fdc_id, slot):
 def build_plan(profile, foods, emb, taste_vector=None, penalties=None):
     """Targets -> parse preferences -> filter foods -> plan. Returns everything needed to save it."""
     targets = calculate_targets(profile)
-    prefs = parse_preferences(profile.preferences_text)
+    prefs = parse_preferences(profile.preferences_text, allergies=profile.allergies)
     allowed, _ = apply_to_foods(foods, prefs)
     if taste_vector is None:
         taste_vector = taste_from_preferences(prefs)
@@ -394,6 +399,7 @@ def finish_week(plan, items, foods, emb):
     db.save_plan(user["id"], new_plan, targets, prefs, seed, taste)
 
 
+ALLERGY_CHECKLIST = ["milk", "egg", "peanut", "tree_nut", "fish", "shellfish", "soy", "wheat", "gluten", "sesame"]
 CONSENT_TEXT = ("I agree that NutriPlan may store and use my details to plan my meals, including my body measurements, "
                 "allergies and health focus. They may be kept on servers outside Egypt. I can delete my account at any time.")
 
@@ -518,6 +524,10 @@ def profile_form(user, targets=None):
                                     help="Koshari, ful medames, molokhia, mahshi and more, as whole meals. "
                                          "Sometimes means about one a day.")
 
+            with st.container(key="pfsec_allergies"):
+                st.markdown('<div class="card-title">Food allergies</div>', unsafe_allow_html=True)
+                ticked, no_allergies = allergy_checks(u.get("allergies"))
+
             with st.container(key="pfsec_prefs"):
                 st.markdown('<div class="card-title">Preferences and allergies</div>', unsafe_allow_html=True)
                 prefs_text = st.text_area("Preferences & allergies", value=u.get("preferences_text", ""),
@@ -543,6 +553,10 @@ def profile_form(user, targets=None):
     if not name.strip():
         st.error("Please enter your name.")
         return None
+    problem = allergy_problem(ticked, no_allergies)
+    if problem:
+        st.error(problem)
+        return None
     if user is None:
         if not consent:
             st.error("Please tick the box to agree, so that your details can be saved.")
@@ -556,8 +570,50 @@ def profile_form(user, targets=None):
             st.error(str(e))
             return None
     profile = UserProfile(name.strip(), int(age), sex, float(weight), float(height), int(activity), goal, prefs_text.strip(),
-                          int(meals), "|".join(sorted(chosen)), egyptian)
+                          int(meals), "|".join(sorted(chosen)), egyptian, "|".join(ticked))
     return profile, (pin if user is None else None)
+
+
+def allergy_checks(current):
+    """The allergy checklist. current: saved answer ("milk|peanut", "" for none, None if never asked).
+    Returns (ticked groups, "no allergies" ticked)."""
+    saved = set(filter(None, (current or "").split("|")))
+    st.caption("Tick every one that applies. These foods will never be in your plan.")
+    left, right = st.columns(2)
+    ticked = [g for i, g in enumerate(ALLERGY_CHECKLIST)
+              if (right if i % 2 else left).checkbox(GROUP_LABELS[g], value=g in saved, key=f"pfallergy_{g}", width="stretch")]
+    none = st.checkbox("I have no food allergies", value=current == "", key="pfallergy_none", width="stretch")
+    st.caption("Allergic to something else? Write it under Preferences. Foods are checked by name, so always read labels yourself.")
+    return ticked, none
+
+
+def allergy_problem(ticked, none):
+    if not ticked and not none:
+        return "Please tick your allergies, or tick \"I have no food allergies\"."
+    if ticked and none:
+        return "You ticked an allergy and \"I have no food allergies\". Please choose one."
+    return None
+
+
+def allergy_page(user, foods, emb):
+    """Accounts made before the checklist existed answer it once. A ticked allergy rebuilds this week's plan."""
+    st.markdown(BRAND, unsafe_allow_html=True)
+    with st.container(key="card_consent"):
+        st.markdown(f'<div class="card-title">Do you have any food allergies, {html.escape(user["name"])}?</div>', unsafe_allow_html=True)
+        with st.form("allergy_form", border=False):
+            ticked, none = allergy_checks(None)
+            ok = st.form_submit_button("Save", type="primary", width="stretch")
+        if ok:
+            problem = allergy_problem(ticked, none)
+            if problem:
+                st.error(problem)
+                return
+            answer = "|".join(ticked)
+            db.set_allergies(user["id"], answer)
+            if ticked and db.latest_plan(user["id"]):
+                with st.spinner("Rebuilding your plan without these foods..."):
+                    new_week_plan(user["id"], profile_of(db.get_user(user["id"])), foods, emb)
+            st.rerun()
 
 
 def consent_page(user):
@@ -818,7 +874,7 @@ def swap_food(plan, meal, day, d, slot, preferences_text):
         r = options[pick]
         day_ids = tuple(int(i) for i in day["fdc_id"])  # no base food twice in a day, like the planner
         modes = plan["targets"].get("health_modes", "")  # swaps respect the diet modes too
-        subs = swap_choices(int(r.fdc_id), slot, float(r.calories), preferences_text, day_ids, modes)
+        subs = swap_choices(int(r.fdc_id), slot, float(r.calories), preferences_text, day_ids, modes, plan_allergies(plan))
         if not subs:
             st.caption("No similar food found for this one.")
         else:
@@ -837,7 +893,7 @@ def swap_food(plan, meal, day, d, slot, preferences_text):
                               placeholder="e.g. brown rice, potatoes, salmon, then press Enter")
         if query.strip():
             found, best = search_choices(query.strip(), int(r.fdc_id), slot, float(r.calories), preferences_text, day_ids,
-                                         modes)
+                                         modes, plan_allergies(plan))
             if not found or best < SEARCH_MIN_MATCH:
                 st.warning(f"No close match for “{query.strip()}” among {swap_kind(int(r.fdc_id), slot)} "
                            "that fit your allergies." + (" Closest ones:" if found else ""))
@@ -901,7 +957,7 @@ def propose(plan, items, day_index, slot, preferences_text):
         if extra:
             penalties[f] = penalties.get(f, 0.0) + extra
     with st.spinner("Planning a different version..."):
-        planner = MealPlanner(allowed_foods(preferences_text, plan["targets"].get("health_modes", "")), emb,
+        planner = MealPlanner(allowed_foods(preferences_text, plan["targets"].get("health_modes", ""), plan_allergies(plan)), emb,
                               plan["taste_vector"], penalties, random.randint(0, 1_000_000), nutrition=plan["targets"])
         daily = daily_targets(plan["targets"])
         if slot is None:
@@ -1385,6 +1441,11 @@ def main():
 
     if not user.get("consented_at"):
         consent_page(user)
+        st.markdown(FOOTER, unsafe_allow_html=True)
+        return
+
+    if user.get("allergies") is None:
+        allergy_page(user, foods, emb)
         st.markdown(FOOTER, unsafe_allow_html=True)
         return
 

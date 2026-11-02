@@ -24,6 +24,7 @@ def sign_up(at, name, pin="1234"):
     """Fill the 'New user' form of the app (name, PIN, repeat PIN) without submitting it."""
     at.radio[0].set_value("New user").run()
     at.checkbox(key="pf_consent").check()
+    at.checkbox(key="pfallergy_none").check()
     at.text_input[0].input(name)
     at.text_input[1].input(pin)
     at.text_input[2].input(pin)
@@ -253,6 +254,7 @@ def test_new_user_must_agree_before_anything_is_saved(temp_db):
     assert any("tick the box" in e.value for e in at.error)
     assert db.list_users() == []
     at.checkbox(key="pf_consent").check()
+    at.checkbox(key="pfallergy_none").check()
     button(at, "Create profile and weekly plan").click().run()
     assert not at.exception
     assert db.get_user(db.list_users()[0]["id"])["consented_at"]
@@ -302,3 +304,84 @@ def test_delete_account_needs_the_pin_and_removes_everything(temp_db, week):
     with db.connect() as con:
         assert con.execute("SELECT COUNT(*) AS n FROM choices WHERE plan_id = ?", (pid,)).fetchone()["n"] == 0
     assert db.get_user(other) and not db.plan_items(kept).empty     # nobody else's data is touched
+
+
+# --- allergy checklist ---------------------------------------------------------------------------------------------
+def served_allergens(plan_id, foods):
+    tags = dict(zip(foods["fdc_id"], foods["allergens"].fillna("").str.split("|").map(set)))
+    return set().union(*(tags[int(f)] for f in db.plan_items(plan_id)["fdc_id"]))
+
+
+def test_new_user_must_answer_the_allergy_checklist(temp_db):
+    from streamlit.testing.v1 import AppTest
+    at = AppTest.from_file("../app.py", default_timeout=120).run()
+    sign_up(at, "Omar")
+    at.checkbox(key="pfallergy_none").uncheck()
+    button(at, "Create profile and weekly plan").click().run()
+    assert any("tick your allergies" in e.value for e in at.error)
+    assert db.list_users() == []
+    at.checkbox(key="pfallergy_peanut").check()
+    at.checkbox(key="pfallergy_none").check()
+    button(at, "Create profile and weekly plan").click().run()
+    assert any("Please choose one" in e.value for e in at.error)
+    assert db.list_users() == []
+
+
+def test_ticked_allergy_stays_out_of_the_plan_and_of_new_meals(temp_db):
+    from streamlit.testing.v1 import AppTest
+    foods = pd.read_csv(FOODS_CLEAN)
+    at = AppTest.from_file("../app.py", default_timeout=180).run()
+    sign_up(at, "Omar")
+    at.checkbox(key="pfallergy_none").uncheck()
+    at.checkbox(key="pfallergy_milk").check()
+    at.checkbox(key="pfallergy_egg").check()
+    button(at, "Create profile and weekly plan").click().run()
+    assert not at.exception
+    uid = db.list_users()[0]["id"]
+    assert db.get_user(uid)["allergies"] == "egg|milk" or db.get_user(uid)["allergies"] == "milk|egg"
+    plan = db.latest_plan(uid)
+    assert not served_allergens(plan["id"], foods) & {"milk", "egg"}
+    button(at, "New meal").click().run()                             # a new version must respect the ticks too
+    assert not at.exception
+    button(at, "Use the new one").click().run()
+    assert not at.exception
+    assert not served_allergens(plan["id"], foods) & {"milk", "egg"}
+
+
+def test_old_account_answers_the_checklist_and_its_plan_is_rebuilt(temp_db, week):
+    from streamlit.testing.v1 import AppTest
+    foods = pd.read_csv(FOODS_CLEAN)
+    user, plan, targets, prefs = week
+    uid = db.create_user(user, "4821")
+    db.save_plan(uid, plan, targets, prefs)
+    with db.connect() as con:                                        # an account from before the checklist
+        con.execute("UPDATE users SET allergies = NULL WHERE id = ?", (uid,))
+    at = AppTest.from_file("../app.py", default_timeout=180).run()
+    sign_in(at, user.name, "4821")
+    assert not any("Signed in as" in m.value for m in at.markdown)   # nothing else opens until they answer
+    button(at, "Save").click().run()
+    assert any("tick your allergies" in e.value for e in at.error)
+    at.checkbox(key="pfallergy_wheat").check()
+    button(at, "Save").click().run()
+    assert not at.exception
+    assert db.get_user(uid)["allergies"] == "wheat"
+    newest = db.latest_plan(uid)
+    assert newest["week_number"] == 2
+    assert not served_allergens(newest["id"], foods) & {"wheat", "gluten"}
+    assert any("Signed in as" in m.value for m in at.markdown)
+
+
+def test_old_account_with_no_allergies_keeps_its_plan(temp_db, week):
+    from streamlit.testing.v1 import AppTest
+    user, plan, targets, prefs = week
+    uid = db.create_user(user, "4821")
+    db.save_plan(uid, plan, targets, prefs)
+    with db.connect() as con:
+        con.execute("UPDATE users SET allergies = NULL WHERE id = ?", (uid,))
+    at = AppTest.from_file("../app.py", default_timeout=180).run()
+    sign_in(at, user.name, "4821")
+    at.checkbox(key="pfallergy_none").check()
+    button(at, "Save").click().run()
+    assert not at.exception
+    assert db.get_user(uid)["allergies"] == ""
+    assert db.latest_plan(uid)["week_number"] == 1
