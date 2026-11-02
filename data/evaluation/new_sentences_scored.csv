@@ -1,0 +1,142 @@
+sentence,written_by,never_expected,never_found,never_extra,never_missed,less_often_expected,less_often_found,less_often_extra,less_often_missed,more_often_expected,more_often_found,more_often_extra,more_often_missed,allergy_expected,allergy_blocked,understood,style,set,warned
+I'm allergic to eggs.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: egg,plain,Set 1 (used to build the fix),False
+"I can't have any dairy, it makes me sick.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: dairy,plain,Set 1 (used to build the fix),False
+"No nuts please, I have a nut allergy.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: nut,plain,Set 1 (used to build the fix),False
+I really dislike liver and onions.,AI assistant,0,0,0,,2,2,0,,0,0,0,,0,0,"less_often: liver, onion",plain,Set 1 (used to build the fix),False
+I love salmon and avocado.,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: avocado, salmon",plain,Set 1 (used to build the fix),False
+I am lactose intolerant.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: lactose,plain,Set 1 (used to build the fix),False
+I have celiac disease.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,,plain,Set 1 (used to build the fix),True
+My favourite foods are lentils and chickpeas.,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: chickpea, lentil",plain,Set 1 (used to build the fix),False
+I don't eat pork.,AI assistant,1,1,0,,0,0,0,,0,0,0,,0,0,never: pork,plain,Set 1 (used to build the fix),False
+I'm vegan.,AI assistant,3,3,1,,0,0,0,,0,0,0,,2,2,"never: honey, meat",plain,Set 1 (used to build the fix),False
+I can't stand okra.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: okra,plain,Set 1 (used to build the fix),False
+Please give me more oatmeal in the mornings.,AI assistant,0,0,0,,0,0,0,,1,1,0,,0,0,more_often: oatmeal,plain,Set 1 (used to build the fix),False
+Shellfish gives me hives.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: shellfish,plain,Set 1 (used to build the fix),False
+"Keep me away from sesame, I get a bad reaction to it.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: sesame,plain,Set 1 (used to build the fix),False
+Not a big fan of tuna.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: tuna,plain,Set 1 (used to build the fix),False
+im alergic to peanuts,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: peanut,typos,Set 1 (used to build the fix),False
+i hate mushroms,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: mushroom,typos,Set 1 (used to build the fix),False
+allergic to shrimps and prawn,AI assistant,2,2,0,,0,0,0,,0,0,0,,2,2,"never: prawn, shrimp",typos,Set 1 (used to build the fix),False
+i luv chiken and rice,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: chicken, rice",typos,Set 1 (used to build the fix),False
+dont like brocoli or cauliflower,AI assistant,0,0,0,,2,2,0,,0,0,0,,0,0,"less_often: broccoli, cauliflower",typos,Set 1 (used to build the fix),False
+i am alergic to sesamee,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: sesame,typos,Set 1 (used to build the fix),False
+i cant eat glutin,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: gluten,typos,Set 1 (used to build the fix),False
+no fish plz,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: fish,typos,Set 1 (used to build the fix),False
+hate egg plant,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: eggplant,typos,Set 1 (used to build the fix),False
+love bananas n apples,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: apple, banana",typos,Set 1 (used to build the fix),False
+I'm not really into seafood these days.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: seafood,indirect,Set 1 (used to build the fix),False
+Beef doesn't agree with me.,AI assistant,0,0,1,,1,0,0,beef,0,0,0,,0,0,never: beef,indirect,Set 1 (used to build the fix),False
+Milk upsets my stomach so I stay away from it.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: milk,indirect,Set 1 (used to build the fix),False
+I could eat rice every single day.,AI assistant,0,0,0,,0,0,0,,1,0,0,rice,0,0,,indirect,Set 1 (used to build the fix),True
+Walnuts make my throat swell.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: walnut,indirect,Set 1 (used to build the fix),False
+Anything with tomatoes is great.,AI assistant,0,0,0,,0,0,0,,1,0,0,tomato,0,0,,indirect,Set 1 (used to build the fix),True
+My doctor told me to avoid shrimp completely.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: shrimp,indirect,Set 1 (used to build the fix),False
+Turkey is fine but I'd rather not have lamb.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: lamb,indirect,Set 1 (used to build the fix),True
+Cottage cheese is disgusting.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: cottage cheese,indirect,Set 1 (used to build the fix),False
+Grilled fish is my go-to dinner.,AI assistant,0,0,0,,0,0,0,,1,0,0,fish,0,0,,indirect,Set 1 (used to build the fix),True
+I keep halal.,AI assistant,2,2,0,,0,0,0,,0,0,0,,0,0,"never: alcohol, pork",indirect,Set 1 (used to build the fix),False
+I was told I have a soy allergy.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: soy,indirect,Set 1 (used to build the fix),False
+Peppers are too much for me.,AI assistant,0,0,0,,1,0,0,pepper,0,0,0,,0,0,,indirect,Set 1 (used to build the fix),True
+Can't get enough of yogurt.,AI assistant,0,0,0,,0,0,0,,1,0,0,yogurt,0,0,,indirect,Set 1 (used to build the fix),True
+Wheat bloats me badly so I cut it out.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: wheat,indirect,Set 1 (used to build the fix),False
+"I'm allergic to almonds, I hate celery and I love spinach.",AI assistant,1,1,0,,1,1,0,,1,1,0,,1,1,never: almond; less_often: celery; more_often: spinach,mixed,Set 1 (used to build the fix),False
+"No shellfish because of my allergy, not keen on beans, but chicken is my favorite.",AI assistant,1,1,0,,1,1,0,,1,1,0,,1,1,never: shellfish; less_often: bean; more_often: chicken,mixed,Set 1 (used to build the fix),False
+I like pasta but I don't like cheese.,AI assistant,0,0,0,,1,1,0,,1,1,0,,0,0,less_often: cheese; more_often: pasta,mixed,Set 1 (used to build the fix),False
+"I enjoy potatoes, dislike carrots, and I'm intolerant to gluten.",AI assistant,1,1,0,,1,1,0,,1,1,0,,1,1,never: gluten; less_often: carrot; more_often: potato,mixed,Set 1 (used to build the fix),False
+"Eggs are my favourite breakfast, although I'm allergic to milk.",AI assistant,1,1,0,,0,0,0,,1,1,0,,1,1,never: milk; more_often: egg,mixed,Set 1 (used to build the fix),False
+I love fish but I'm allergic to tuna.,AI assistant,1,1,0,,0,0,0,,1,1,0,,1,1,never: tuna; more_often: fish,mixed,Set 1 (used to build the fix),False
+I'm pescatarian and I hate squid.,AI assistant,1,1,0,,1,1,1,,0,0,0,,0,0,"never: meat_not_fish; less_often: pescatarian, squid",mixed,Set 1 (used to build the fix),False
+"Vegetarian here, love lentils, and no peanuts because I'm allergic.",AI assistant,2,2,0,,0,0,0,,1,1,0,,1,1,"never: meat, peanut; more_often: lentil",mixed,Set 1 (used to build the fix),False
+"I don't mind chicken but I prefer turkey, and avocados make me feel awful so skip them.",AI assistant,0,0,0,,1,0,0,avocado,1,1,1,,0,0,"more_often: avocado, turkey",mixed,Set 1 (used to build the fix),True
+Allergic to kiwi and strawberries; love oranges.,AI assistant,2,2,0,,0,0,0,,1,1,0,,0,0,"never: kiwi, strawberry; more_often: orange",mixed,Set 1 (used to build the fix),True
+I'm not allergic to anything but I don't like onions.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: onion,negation,Set 1 (used to build the fix),False
+I eat everything except liver.,AI assistant,0,0,0,,1,0,0,liver,0,0,0,,0,0,,negation,Set 1 (used to build the fix),False
+I used to hate broccoli but now I love it.,AI assistant,0,0,0,,0,0,1,,1,0,0,broccoli,0,0,less_often: broccoli,negation,Set 1 (used to build the fix),False
+"I don't have a peanut allergy, I just don't like peanuts.",AI assistant,0,0,1,,1,1,0,,0,0,0,,0,0,never: peanut; less_often: peanut,negation,Set 1 (used to build the fix),False
+No allergies.,AI assistant,0,0,0,,0,0,0,,0,0,0,,0,0,,negation,Set 1 (used to build the fix),False
+I love everything except eggplant.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: eggplant,negation,Set 1 (used to build the fix),False
+I love koshari and molokhia.,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: koshari, molokhia",egyptian,Set 1 (used to build the fix),False
+I don't like bamya at all.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: bamya,egyptian,Set 1 (used to build the fix),False
+Ful is my favourite breakfast but I can't stand liver.,AI assistant,0,0,0,,1,0,0,liver,1,0,0,ful,0,0,,egyptian,Set 1 (used to build the fix),False
+I'm allergic to tahini.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: tahini,egyptian,Set 1 (used to build the fix),False
+Mahshi is the best thing ever.,AI assistant,0,0,0,,0,0,0,,1,0,0,mahshi,0,0,,egyptian,Set 1 (used to build the fix),True
+Cashews send me to the emergency room.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: cashew,reaction,Set 2 (failures seen while fixing),False
+I carry an EpiPen because of peanuts.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: peanut,reaction,Set 2 (failures seen while fixing),False
+I break out in a rash from strawberries.,AI assistant,1,1,0,,0,0,0,,0,0,0,,0,0,never: strawberry,reaction,Set 2 (failures seen while fixing),True
+Sesame seeds are a no-go for me.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: sesame seed,indirect,Set 2 (failures seen while fixing),False
+I can't go near shellfish.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: shellfish,indirect,Set 2 (failures seen while fixing),False
+Dairy wrecks my stomach.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: dairy,reaction,Set 2 (failures seen while fixing),False
+"Gluten is off limits, I've got coeliac disease.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: gluten,condition,Set 2 (failures seen while fixing),True
+Eggs are a problem for me.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: egg,indirect,Set 2 (failures seen while fixing),False
+allergic too fish,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: fish,typos,Set 2 (failures seen while fixing),False
+algeric to shrimp,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: shrimp,typos,Set 2 (failures seen while fixing),False
+allergik to nuts,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: nut,typos,Set 2 (failures seen while fixing),False
+alergy to soya,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: soya,typos,Set 2 (failures seen while fixing),False
+severe nut alergy,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: nut,typos,Set 2 (failures seen while fixing),False
+Peanut butter is dangerous for me.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: peanut butter,indirect,Set 2 (failures seen while fixing),False
+I get sick if I eat tuna.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: tuna,reaction,Set 2 (failures seen while fixing),False
+My lips swell up when I have prawns.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: prawn,reaction,Set 2 (failures seen while fixing),False
+I'm coeliac.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,,condition,Set 2 (failures seen while fixing),True
+I was diagnosed with a wheat allergy last year.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: wheat,condition,Set 2 (failures seen while fixing),False
+The allergist said no tree nuts for me.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: tree nut,doctor,Set 2 (failures seen while fixing),False
+My dietitian wants me to cut out milk completely.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: milk,doctor,Set 2 (failures seen while fixing),False
+I have to stay off eggs for medical reasons.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: egg,doctor,Set 2 (failures seen while fixing),False
+Crab makes me throw up.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: crab,reaction,Set 2 (failures seen while fixing),False
+I cant have sesam,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: sesame,typos,Set 2 (failures seen while fixing),False
+no peanuts or walnutts,AI assistant,2,2,0,,0,0,0,,0,0,0,,2,2,"never: peanut, walnut",typos,Set 2 (failures seen while fixing),False
+i am allergic to shrimpp and i like rice,AI assistant,1,1,0,,0,0,0,,1,1,0,,1,1,never: shrimp; more_often: rice,typos,Set 2 (failures seen while fixing),False
+Almonds are dangerous for my daughter and me.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: almond,indirect,Set 2 (failures seen while fixing),False
+"Strictly no soy, I react badly to it.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: soy,reaction,Set 2 (failures seen while fixing),False
+I must never eat lobster.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: lobster,indirect,Set 2 (failures seen while fixing),False
+I'm sensitive to lactose.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: lactose,indirect,Set 2 (failures seen while fixing),False
+Oysters once put me in hospital.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: oyster,reaction,Set 2 (failures seen while fixing),False
+Not a fan of cabbage at all.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: cabbage,dislike,Set 2 (failures seen while fixing),False
+I'd prefer to skip the mushrooms.,AI assistant,0,0,0,,1,0,0,mushroom,0,0,1,,0,0,more_often: mushroom,dislike,Set 2 (failures seen while fixing),False
+I really can't do spicy peppers.,AI assistant,0,0,0,,1,0,0,pepper,0,0,0,,0,0,,dislike,Set 2 (failures seen while fixing),True
+Salmon is amazing.,AI assistant,0,0,0,,0,0,0,,1,0,0,salmon,0,0,,like,Set 2 (failures seen while fixing),True
+I'd happily eat chicken every day.,AI assistant,0,0,0,,0,0,0,,1,0,0,chicken,0,0,,like,Set 2 (failures seen while fixing),True
+Lentil soup is my comfort food.,AI assistant,0,0,0,,0,0,0,,1,0,0,lentil,0,0,,like,Set 2 (failures seen while fixing),True
+Nothing to report on allergies.,AI assistant,0,0,0,,0,0,0,,0,0,0,,0,0,,none,Set 2 (failures seen while fixing),True
+I can eat anything.,AI assistant,0,0,0,,0,0,0,,0,0,0,,0,0,,none,Set 2 (failures seen while fixing),False
+I don't have any food allergies but I hate olives.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: olive,none,Set 2 (failures seen while fixing),False
+I have no problem with nuts.,AI assistant,0,0,0,,0,0,0,,0,0,0,,0,0,,none,Set 2 (failures seen while fixing),True
+My tongue tingles whenever I eat kiwi.,AI assistant,1,0,0,kiwi,0,0,0,,0,0,0,,0,0,,reaction,"Set 3 (kept apart, scored once)",True
+Hazelnuts give me a nasty reaction.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: hazelnut,reaction,"Set 3 (kept apart, scored once)",False
+I blow up like a balloon after eating bread.,AI assistant,1,0,0,bread,0,0,0,,0,0,1,,1,0,more_often: bread,reaction,"Set 3 (kept apart, scored once)",False
+I can't breathe properly after eating mussels.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: eating mussel,reaction,"Set 3 (kept apart, scored once)",False
+Any contact with pistachios is a big risk for me.,AI assistant,1,0,0,pistachio,0,0,0,,0,0,0,,1,0,,indirect,"Set 3 (kept apart, scored once)",True
+Eating cod is not safe for me.,AI assistant,1,0,0,cod,0,0,0,,0,0,0,,1,0,,indirect,"Set 3 (kept apart, scored once)",True
+I must keep clear of soy products.,AI assistant,1,0,0,soy,0,0,0,,0,0,0,,1,0,,indirect,"Set 3 (kept apart, scored once)",True
+Tofu is out of the question for health reasons.,AI assistant,1,0,0,tofu,0,0,0,,0,0,0,,1,0,,indirect,"Set 3 (kept apart, scored once)",True
+Milk products are banned in my diet.,AI assistant,1,0,0,milk,0,0,0,,0,0,0,,1,0,,indirect,"Set 3 (kept apart, scored once)",True
+I have been told by my GP to give up shellfish.,AI assistant,1,0,0,shellfish,0,0,0,,0,0,0,,1,0,,doctor,"Set 3 (kept apart, scored once)",True
+The hospital tested me and I have to stop eating eggs.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: egg,doctor,"Set 3 (kept apart, scored once)",False
+My nutritionist says wheat is not for me.,AI assistant,1,0,0,wheat,0,0,0,,0,0,0,,1,0,,doctor,"Set 3 (kept apart, scored once)",True
+"Doctors say no sesame, ever.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: sesame,doctor,"Set 3 (kept apart, scored once)",False
+I've been gluten intolerant since childhood.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: gluten,plain,"Set 3 (kept apart, scored once)",False
+Allergies: almonds and sardines.,AI assistant,2,2,0,,0,0,0,,0,0,0,,2,2,"never: almond, sardine",list,"Set 3 (kept apart, scored once)",False
+"Allergic: shrimp, crab, lobster.",AI assistant,3,3,0,,0,0,0,,0,0,0,,3,3,"never: crab, lobster, shrimp",list,"Set 3 (kept apart, scored once)",False
+Severe allergy - tree nuts.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: tree nut,list,"Set 3 (kept apart, scored once)",False
+peanuts = allergy,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: peanut,list,"Set 3 (kept apart, scored once)",False
+im allergc to wallnuts,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: walnut,typos,"Set 3 (kept apart, scored once)",False
+allrgy to salmon,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: salmon,typos,"Set 3 (kept apart, scored once)",False
+alergic to lobstar,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: lobster,typos,"Set 3 (kept apart, scored once)",False
+intollerant to lactose,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: lactose,typos,"Set 3 (kept apart, scored once)",False
+cant eat shelfish,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: shellfish,typos,"Set 3 (kept apart, scored once)",False
+no peanutbutter,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,0,never: peanutbutter,typos,"Set 3 (kept apart, scored once)",False
+I AM ALLERGIC TO EGGS,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: egg,capitals,"Set 3 (kept apart, scored once)",False
+SESAME ALLERGY!!!,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: sesame,capitals,"Set 3 (kept apart, scored once)",False
+No more fish for me.,AI assistant,1,0,0,fish,0,0,0,,0,0,1,,1,0,more_often: fish,indirect,"Set 3 (kept apart, scored once)",False
+I stopped eating dairy after a bad reaction.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: dairy,reaction,"Set 3 (kept apart, scored once)",False
+My son and I both react to tuna.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: tuna,reaction,"Set 3 (kept apart, scored once)",False
+I am sensitive to wheat and cannot digest it.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: wheat,indirect,"Set 3 (kept apart, scored once)",False
+I like yogurt because it helps my stomach.,AI assistant,0,0,0,,0,0,0,,1,1,0,,0,0,more_often: yogurt,false alarm,"Set 3 (kept apart, scored once)",True
+I love rice and I am trying to breathe better while running.,AI assistant,0,0,0,,0,0,0,,1,1,0,,0,0,more_often: rice,false alarm,"Set 3 (kept apart, scored once)",True
+My doctor told me to eat more fish.,AI assistant,0,0,0,,0,0,0,,1,1,0,,0,0,more_often: fish,false alarm,"Set 3 (kept apart, scored once)",True
+I no longer dislike eggs.,AI assistant,0,0,0,,0,0,1,,0,0,0,,0,0,less_often: egg,false alarm,"Set 3 (kept apart, scored once)",False
+My sister is allergic to shrimp but I love it.,AI assistant,0,0,1,,0,0,0,,1,0,0,shrimp,0,0,never: shrimp,false alarm,"Set 3 (kept apart, scored once)",False
+Nuts are my favourite snack.,AI assistant,0,0,0,,0,0,0,,1,1,0,,0,0,more_often: nut,false alarm,"Set 3 (kept apart, scored once)",False
+I feel great when I eat salmon.,AI assistant,0,0,0,,0,0,0,,1,0,0,salmon,0,0,,false alarm,"Set 3 (kept apart, scored once)",True
+I have no food allergies.,AI assistant,0,0,0,,0,0,0,,0,0,0,,0,0,,false alarm,"Set 3 (kept apart, scored once)",False
+I dislike celery and I do not like beets.,AI assistant,0,0,0,,2,2,0,,0,0,0,,0,0,"less_often: beet, celery",dislike,"Set 3 (kept apart, scored once)",False
+I would like more grilled chicken and lentils.,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: grilled chicken, lentil",like,"Set 3 (kept apart, scored once)",False

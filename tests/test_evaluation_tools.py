@@ -7,7 +7,7 @@ import pytest
 
 from src import db
 from src.calculator import UserProfile
-from src.config import EMBEDDINGS
+from src.config import EMBEDDINGS, FOODS_CLEAN
 from src.heldout import COLUMNS, EXAMPLES, load_sentences, make_template, score
 
 pytestmark = pytest.mark.skipif(not EMBEDDINGS.exists(), reason="run `python -m src.embeddings` first")
@@ -101,3 +101,18 @@ def test_app_rate_this_week(temp_db):
     assert not at.exception
     pid = db.latest_plan(db.list_users()[0]["id"])["id"]
     assert db.get_survey(pid)["liked"] == 5 and db.get_survey(pid)["would_use"] == "yes"
+
+
+# --- simulated testers --------------------------------------------------------------------------------------------
+def test_simulated_tester_runs_on_a_throwaway_database(tmp_path, monkeypatch):
+    from src.embeddings import FoodEmbeddings
+    from src.testers import TESTERS, food_texts, run_tester
+    monkeypatch.setenv("NUTRI_DB_PATH", str(tmp_path / "testers.db"))
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    db.init_db()
+    foods = pd.read_csv(FOODS_CLEAN)
+    rows = run_tester(1, TESTERS[0], foods, FoodEmbeddings(foods), food_texts(foods), True, weeks=2)
+    assert [r["week"] for r in rows] == [1, 2]
+    assert all(r["signed_in"] and r["wrong_pin_refused"] for r in rows)
+    assert all(r["allergy_found"] and r["allergen_items"] == 0 for r in rows)  # this tester states a shrimp allergy
+    assert len(db.list_plans(db.list_users()[0]["id"])) == 2

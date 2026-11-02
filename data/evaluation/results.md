@@ -70,7 +70,7 @@ Disliked foods served per week:
 | dislikes fish & seafood | with feedback | 3.7 | 0.0 | 0.0 | 0.0 |
 
 ## 7. Speed
-- Weekly plan generation: mean **3.18 s**, max 6.24 s (after models are loaded).
+- Weekly plan generation: mean **3.42 s**, max 4.14 s (after models are loaded).
 
 ## 8. Nutrients (84 planned days; same users, same seeds) - nutrient-aware planner vs macros only
 "On target" = at least the daily minimum (fiber, potassium, calcium, iron) or at most the limit (saturated fat, sodium).
@@ -119,14 +119,14 @@ Limits: sodium 2,300 mg (1,500 mg low-salt); sugars 10% of calories (diabetes-fr
 Not collected yet. Send `data/evaluation/heldout_sentences.xlsx` (make it with `python -m src.heldout --template`) to 5-10 people who did not build the app, put the filled sheet back in `data/evaluation/`, and run this script again.
 
 ## 12. Real-user pilot (data/app.db, aggregated)
-- Profiles: 3, plans made: 9, finished weeks: 1 (by 1 person)
+- Profiles: 4, plans made: 10, finished weeks: 1 (by 1 person)
 - Meals ticked as eaten, by week of use:
 
 | Week of use | People | Meals eaten |
 |---|---|---|
 | 1 | 1 | 89.3% |
 
-- Swaps per plan: 0.7; New meal / day choices: 0 (- kept the new one)
+- Swaps per plan: 0.8; New meal / day choices: 0 (- kept the new one)
 - People who logged their weight 2+ times: 1
 - No ratings yet.
 

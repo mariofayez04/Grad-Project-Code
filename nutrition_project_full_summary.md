@@ -816,3 +816,25 @@ What this can't change: Vercel's free plan closes the live connection after 5 mi
 - The Health focus boxes are the same width, and action buttons are all 44 px high. The top menu stays at 40 px.
 
 **Day totals.** Moved from above the meals to below them, as a table: Nutrient, This day, Target, Result. Calories and macros come first, then the other nutrients. The dot is green within 5% of the target (the same rule as the comparison window) and yellow otherwise; the other nutrients keep their existing status. "New version of this day" moved with it.
+
+### 17.12 Simulated testers and the allergy safety fix (2026-11-02)
+
+Hosting: the Neon free Postgres database `neon-aureolin-bridge` is connected to the Vercel project `grad-project-code` through the Vercel integration, so `DATABASE_URL` is set. After the redeploy the user signed up, signed out and signed in again on the live site: it works.
+
+**Simulated testers (`src/testers.py`, results in `data/evaluation/simulated_testers.md`).** 24 scripted users x 4 weeks x learning on and off, using the app's own database, planner and feedback functions on a throwaway database. These are not real people, and they produce no satisfaction ratings. The report must say so.
+
+**Bug found by testing on new wording.** The parser's 100% on its own test sentences did not hold on sentences it was not built with:
+
+| Sentences (written by an AI assistant, not volunteers) | Allergy items blocked, before | After |
+|---|---|---|
+| Set 1, 61 sentences, used to build the fix | 18 / 27 | 27 / 27 |
+| Set 2, 40 sentences, failures seen while fixing | 7 / 30 | 30 / 30 |
+| Set 3, 40 sentences, written after the rules were frozen, scored once | not measured | **22 / 32 (68.8%)** |
+
+Set 3 is the fair number; sets 1 and 2 are optimistic. Of set 3's 10 misses, the app now asks about 7 and misses 3 with no warning (9.4% of items). The 4 testers with messy wording were served 185 allergen foods before the fix and 0 after, but they were chosen because their wording was known to fail, so that shows the effect of the fix, not a rate.
+
+**Fix (`src/parser.py`):** spelling correction (uses the NER model's vocabulary and the food names, so real words stay as they are); reaction wording, conditions (celiac, favism) and doctor's advice count as a block; `unclear` makes the app ask when it can't tell what was meant (in the app and the PDF). The rule of asking was added after seeing set 3, and doesn't change its score. No phrase list can cover every wording, so asking is part of the safety design.
+
+Known limits: likes and dislikes in indirect wording are often missed ("Salmon is amazing"); "I'd prefer to skip the mushrooms" still reads as a like.
+
+Tests: 238 -> 267. Report files are in `report/` (`build_report.py`, `content.py`, `make_diagrams.py`, `make_charts.py`, `make_code_figures.py`).

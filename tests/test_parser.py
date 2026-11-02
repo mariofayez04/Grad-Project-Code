@@ -88,3 +88,59 @@ def test_vegetarian_halal(foods):
     assert allowed["is_vegetarian"].all()
     allowed, _ = apply_to_foods(foods, parse_preferences("halal only"))
     assert not allowed["contains_pork"].any() and not allowed["contains_alcohol"].any()
+
+
+# --- safety layer: wording found by testing on sentences the rules were not built with ------------------------
+@pytest.mark.parametrize("text,groups", [
+    ("im alergic to peanuts", {"peanut"}),                         # spelling
+    ("i am alergic to sesamee", {"sesame"}),
+    ("i cant eat glutin", {"gluten"}),
+    ("allergik to nuts", {"peanut", "tree_nut"}),
+    ("Shellfish gives me hives", {"shellfish"}),                   # reactions
+    ("Walnuts make my throat swell.", {"tree_nut"}),
+    ("Milk upsets my stomach so I stay away from it", {"milk"}),
+    ("Crab makes me throw up.", {"shellfish"}),
+    ("I love shrimp but it gives me hives", {"shellfish"}),        # the reaction is in the next clause
+    ("I have celiac disease", {"gluten", "wheat"}),                # conditions
+    ("I'm coeliac.", {"gluten", "wheat"}),
+    ("My doctor told me to avoid shrimp completely.", {"shellfish"}),   # medical advice
+    ("My dietitian wants me to cut out milk completely.", {"milk"}),
+])
+def test_health_wording_blocks(text, groups):
+    assert groups <= parse_preferences(text).block_groups
+
+
+@pytest.mark.parametrize("text,allowed_group", [
+    ("I have no problem with nuts", "peanut"),
+    ("I'm not a big fan of tuna", "fish"),                         # a dislike stays a dislike
+    ("I love chicken, my doctor says to eat more fish", "fish"),   # advice to eat more is not a block
+    ("I had a dream about bread and I love it", "wheat"),
+])
+def test_ordinary_wording_blocks_nothing(text, allowed_group):
+    assert allowed_group not in parse_preferences(text).block_groups
+
+
+def test_dislike_with_big_fan_is_not_a_like():
+    assert "tuna" in parse_preferences("Not a big fan of tuna").avoid_terms
+
+
+@pytest.mark.parametrize("word", ["chickpeas", "break", "dream", "lentils", "koshari", "means", "people"])
+def test_spelling_leaves_real_words_alone(word):
+    assert parse_preferences(f"I love {word}").corrections == {}
+
+
+def test_spelling_is_reported():
+    assert parse_preferences("im alergic to peanuts").corrections == {"alergic": "allergic"}
+
+
+def test_unclear_health_wording_is_flagged():
+    assert parse_preferences("I get terrible hives sometimes").unclear
+    assert parse_preferences("I have kidney disease").unclear
+    assert parse_preferences("Mangoes are a bit of a worry").unclear  # a food, but no way to tell what is meant
+    assert not parse_preferences("I'm allergic to eggs").unclear
+    assert not parse_preferences("No allergies, I love rice").unclear
+
+
+def test_favism_blocks_fava_dishes(foods):
+    allowed, _ = apply_to_foods(foods, parse_preferences("I have favism"))
+    assert not allowed["description"].str.contains("fava|broadbean|ful medames", case=False).any()

@@ -1,0 +1,62 @@
+sentence,written_by,never_expected,never_found,never_extra,never_missed,less_often_expected,less_often_found,less_often_extra,less_often_missed,more_often_expected,more_often_found,more_often_extra,more_often_missed,allergy_expected,allergy_blocked,understood,style
+I'm allergic to eggs.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: egg,plain
+"I can't have any dairy, it makes me sick.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: dairy,plain
+"No nuts please, I have a nut allergy.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: nut,plain
+I really dislike liver and onions.,AI assistant,0,0,0,,2,2,0,,0,0,0,,0,0,"less_often: liver, onion",plain
+I love salmon and avocado.,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: avocado, salmon",plain
+I am lactose intolerant.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: lactose,plain
+I have celiac disease.,AI assistant,1,0,0,gluten,0,0,0,,0,0,0,,1,0,,plain
+My favourite foods are lentils and chickpeas.,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: chickpea, lentil",plain
+I don't eat pork.,AI assistant,1,1,0,,0,0,0,,0,0,0,,0,0,never: pork,plain
+I'm vegan.,AI assistant,3,3,1,,0,0,0,,0,0,0,,2,2,"never: honey, meat",plain
+I can't stand okra.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: okra,plain
+Please give me more oatmeal in the mornings.,AI assistant,0,0,0,,0,0,0,,1,1,0,,0,0,more_often: oatmeal,plain
+Shellfish gives me hives.,AI assistant,1,0,0,shellfish,0,0,0,,0,0,0,,1,0,,plain
+"Keep me away from sesame, I get a bad reaction to it.",AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: sesame,plain
+Not a big fan of tuna.,AI assistant,0,0,0,,1,0,0,tuna,0,0,1,,0,0,more_often: tuna,plain
+im alergic to peanuts,AI assistant,1,0,0,peanut,0,0,0,,0,0,0,,1,0,,typos
+i hate mushroms,AI assistant,0,0,0,,1,0,1,mushroom,0,0,0,,0,0,less_often: mushrom,typos
+allergic to shrimps and prawn,AI assistant,2,2,0,,0,0,0,,0,0,0,,2,2,"never: prawn, shrimp",typos
+i luv chiken and rice,AI assistant,0,0,0,,0,0,0,,2,0,0,"chicken, rice",0,0,,typos
+dont like brocoli or cauliflower,AI assistant,0,0,0,,2,1,1,broccoli,0,0,0,,0,0,"less_often: brocoli, cauliflower",typos
+i am alergic to sesamee,AI assistant,1,0,0,sesame,0,0,0,,0,0,0,,1,0,,typos
+i cant eat glutin,AI assistant,1,0,1,gluten,0,0,0,,0,0,0,,1,0,never: glutin,typos
+no fish plz,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: fish,typos
+hate egg plant,AI assistant,0,0,0,,1,0,1,eggplant,0,0,0,,0,0,less_often: egg plant,typos
+love bananas n apples,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: apple, banana",typos
+I'm not really into seafood these days.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: seafood,indirect
+Beef doesn't agree with me.,AI assistant,0,0,0,,1,0,0,beef,0,0,0,,0,0,,indirect
+Milk upsets my stomach so I stay away from it.,AI assistant,1,0,0,milk,0,0,0,,0,0,0,,1,0,,indirect
+I could eat rice every single day.,AI assistant,0,0,0,,0,0,0,,1,0,0,rice,0,0,,indirect
+Walnuts make my throat swell.,AI assistant,1,0,0,walnut,0,0,0,,0,0,0,,1,0,,indirect
+Anything with tomatoes is great.,AI assistant,0,0,0,,0,0,0,,1,0,0,tomato,0,0,,indirect
+My doctor told me to avoid shrimp completely.,AI assistant,1,0,0,shrimp,0,0,1,,0,0,0,,1,0,less_often: shrimp,indirect
+Turkey is fine but I'd rather not have lamb.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: lamb,indirect
+Cottage cheese is disgusting.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: cottage cheese,indirect
+Grilled fish is my go-to dinner.,AI assistant,0,0,0,,0,0,0,,1,0,0,fish,0,0,,indirect
+I keep halal.,AI assistant,2,2,0,,0,0,0,,0,0,0,,0,0,"never: alcohol, pork",indirect
+I was told I have a soy allergy.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: soy,indirect
+Peppers are too much for me.,AI assistant,0,0,0,,1,0,0,pepper,0,0,0,,0,0,,indirect
+Can't get enough of yogurt.,AI assistant,0,0,0,,0,0,0,,1,0,0,yogurt,0,0,,indirect
+Wheat bloats me badly so I cut it out.,AI assistant,1,0,0,wheat,0,0,0,,0,0,0,,1,0,,indirect
+"I'm allergic to almonds, I hate celery and I love spinach.",AI assistant,1,1,0,,1,1,0,,1,1,0,,1,1,never: almond; less_often: celery; more_often: spinach,mixed
+"No shellfish because of my allergy, not keen on beans, but chicken is my favorite.",AI assistant,1,1,0,,1,1,0,,1,1,0,,1,1,never: shellfish; less_often: bean; more_often: chicken,mixed
+I like pasta but I don't like cheese.,AI assistant,0,0,0,,1,1,0,,1,1,0,,0,0,less_often: cheese; more_often: pasta,mixed
+"I enjoy potatoes, dislike carrots, and I'm intolerant to gluten.",AI assistant,1,1,0,,1,1,0,,1,1,0,,1,1,never: gluten; less_often: carrot; more_often: potato,mixed
+"Eggs are my favourite breakfast, although I'm allergic to milk.",AI assistant,1,1,0,,0,0,0,,1,1,0,,1,1,never: milk; more_often: egg,mixed
+I love fish but I'm allergic to tuna.,AI assistant,1,1,0,,0,0,0,,1,1,0,,1,1,never: tuna; more_often: fish,mixed
+I'm pescatarian and I hate squid.,AI assistant,1,1,0,,1,1,1,,0,0,0,,0,0,"never: meat_not_fish; less_often: pescatarian, squid",mixed
+"Vegetarian here, love lentils, and no peanuts because I'm allergic.",AI assistant,2,2,0,,0,0,0,,1,1,0,,1,1,"never: meat, peanut; more_often: lentil",mixed
+"I don't mind chicken but I prefer turkey, and avocados make me feel awful so skip them.",AI assistant,0,0,0,,1,0,0,avocado,1,1,1,,0,0,"more_often: avocado, turkey",mixed
+Allergic to kiwi and strawberries; love oranges.,AI assistant,2,2,0,,0,0,0,,1,1,0,,0,0,"never: kiwi, strawberry; more_often: orange",mixed
+I'm not allergic to anything but I don't like onions.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: onion,negation
+I eat everything except liver.,AI assistant,0,0,0,,1,0,0,liver,0,0,0,,0,0,,negation
+I used to hate broccoli but now I love it.,AI assistant,0,0,0,,0,0,1,,1,0,0,broccoli,0,0,less_often: broccoli,negation
+"I don't have a peanut allergy, I just don't like peanuts.",AI assistant,0,0,1,,1,1,0,,0,0,0,,0,0,never: peanut; less_often: peanut,negation
+No allergies.,AI assistant,0,0,0,,0,0,0,,0,0,0,,0,0,,negation
+I love everything except eggplant.,AI assistant,0,0,0,,1,0,0,eggplant,0,0,1,,0,0,more_often: eggplant,negation
+I love koshari and molokhia.,AI assistant,0,0,0,,0,0,0,,2,2,0,,0,0,"more_often: koshari, molokhia",egyptian
+I don't like bamya at all.,AI assistant,0,0,0,,1,1,0,,0,0,0,,0,0,less_often: bamya,egyptian
+Ful is my favourite breakfast but I can't stand liver.,AI assistant,0,0,0,,1,0,0,liver,1,0,0,ful,0,0,,egyptian
+I'm allergic to tahini.,AI assistant,1,1,0,,0,0,0,,0,0,0,,1,1,never: tahini,egyptian
+Mahshi is the best thing ever.,AI assistant,0,0,0,,0,0,0,,1,0,0,mahshi,0,0,,egyptian

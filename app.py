@@ -723,6 +723,13 @@ def show_understood(prefs):
         st.markdown('<div class="pref-grid">' + box("never", "var(--never-icon)", "Never included", sorted(set(blocked)), "chip-never")
                     + box("less", "var(--muted)", "Less often", prefs["avoid"], "chip-less")
                     + box("more", "var(--green)", "More often", prefs["prefer"], "chip-more") + "</div>", unsafe_allow_html=True)
+        for clause in prefs.get("unclear", []):
+            st.warning(f'Please check this one: "{clause}". I could not tell what you mean, so nothing was left out because of '
+                       'it. If it is an allergy or a health matter, write it like "I\'m allergic to peanuts" under '
+                       "Edit preferences, and follow your doctor's advice.")
+        if prefs.get("corrections"):
+            read_as = ", ".join(f'"{typed}" as "{new}"' for typed, new in prefs["corrections"].items())
+            st.caption(f"I corrected some spelling: I read {read_as}. If that's wrong, change it under Edit preferences.")
 
 
 def on_check(plan_id, day_index, slot, key):

@@ -1,0 +1,62 @@
+sentence,never,less_often,more_often,written_by,style
+I'm allergic to eggs.,eggs,,,AI assistant,plain
+"I can't have any dairy, it makes me sick.",dairy,,,AI assistant,plain
+"No nuts please, I have a nut allergy.",nuts,,,AI assistant,plain
+I really dislike liver and onions.,,"liver, onions",,AI assistant,plain
+I love salmon and avocado.,,,"salmon, avocado",AI assistant,plain
+I am lactose intolerant.,lactose,,,AI assistant,plain
+I have celiac disease.,gluten,,,AI assistant,plain
+My favourite foods are lentils and chickpeas.,,,"lentils, chickpeas",AI assistant,plain
+I don't eat pork.,pork,,,AI assistant,plain
+I'm vegan.,"meat, dairy, eggs",,,AI assistant,plain
+I can't stand okra.,,okra,,AI assistant,plain
+Please give me more oatmeal in the mornings.,,,oatmeal,AI assistant,plain
+Shellfish gives me hives.,shellfish,,,AI assistant,plain
+"Keep me away from sesame, I get a bad reaction to it.",sesame,,,AI assistant,plain
+Not a big fan of tuna.,,tuna,,AI assistant,plain
+im alergic to peanuts,peanuts,,,AI assistant,typos
+i hate mushroms,,mushrooms,,AI assistant,typos
+allergic to shrimps and prawn,"shrimp, prawn",,,AI assistant,typos
+i luv chiken and rice,,,"chicken, rice",AI assistant,typos
+dont like brocoli or cauliflower,,"broccoli, cauliflower",,AI assistant,typos
+i am alergic to sesamee,sesame,,,AI assistant,typos
+i cant eat glutin,gluten,,,AI assistant,typos
+no fish plz,fish,,,AI assistant,typos
+hate egg plant,,eggplant,,AI assistant,typos
+love bananas n apples,,,"bananas, apples",AI assistant,typos
+I'm not really into seafood these days.,,seafood,,AI assistant,indirect
+Beef doesn't agree with me.,,beef,,AI assistant,indirect
+Milk upsets my stomach so I stay away from it.,milk,,,AI assistant,indirect
+I could eat rice every single day.,,,rice,AI assistant,indirect
+Walnuts make my throat swell.,walnuts,,,AI assistant,indirect
+Anything with tomatoes is great.,,,tomatoes,AI assistant,indirect
+My doctor told me to avoid shrimp completely.,shrimp,,,AI assistant,indirect
+Turkey is fine but I'd rather not have lamb.,,lamb,,AI assistant,indirect
+Cottage cheese is disgusting.,,cottage cheese,,AI assistant,indirect
+Grilled fish is my go-to dinner.,,,fish,AI assistant,indirect
+I keep halal.,"pork, alcohol",,,AI assistant,indirect
+I was told I have a soy allergy.,soy,,,AI assistant,indirect
+Peppers are too much for me.,,peppers,,AI assistant,indirect
+Can't get enough of yogurt.,,,yogurt,AI assistant,indirect
+Wheat bloats me badly so I cut it out.,wheat,,,AI assistant,indirect
+"I'm allergic to almonds, I hate celery and I love spinach.",almonds,celery,spinach,AI assistant,mixed
+"No shellfish because of my allergy, not keen on beans, but chicken is my favorite.",shellfish,beans,chicken,AI assistant,mixed
+I like pasta but I don't like cheese.,,cheese,pasta,AI assistant,mixed
+"I enjoy potatoes, dislike carrots, and I'm intolerant to gluten.",gluten,carrots,potatoes,AI assistant,mixed
+"Eggs are my favourite breakfast, although I'm allergic to milk.",milk,,eggs,AI assistant,mixed
+I love fish but I'm allergic to tuna.,tuna,,fish,AI assistant,mixed
+I'm pescatarian and I hate squid.,meat,squid,,AI assistant,mixed
+"Vegetarian here, love lentils, and no peanuts because I'm allergic.","meat, peanuts",,lentils,AI assistant,mixed
+"I don't mind chicken but I prefer turkey, and avocados make me feel awful so skip them.",,avocados,turkey,AI assistant,mixed
+Allergic to kiwi and strawberries; love oranges.,"kiwi, strawberries",,oranges,AI assistant,mixed
+I'm not allergic to anything but I don't like onions.,,onions,,AI assistant,negation
+I eat everything except liver.,,liver,,AI assistant,negation
+I used to hate broccoli but now I love it.,,,broccoli,AI assistant,negation
+"I don't have a peanut allergy, I just don't like peanuts.",,peanuts,,AI assistant,negation
+No allergies.,,,,AI assistant,negation
+I love everything except eggplant.,,eggplant,,AI assistant,negation
+I love koshari and molokhia.,,,"koshari, molokhia",AI assistant,egyptian
+I don't like bamya at all.,,bamya,,AI assistant,egyptian
+Ful is my favourite breakfast but I can't stand liver.,,liver,ful,AI assistant,egyptian
+I'm allergic to tahini.,tahini,,,AI assistant,egyptian
+Mahshi is the best thing ever.,,,mahshi,AI assistant,egyptian

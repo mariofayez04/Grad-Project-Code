@@ -1,0 +1,41 @@
+sentence,never,less_often,more_often,written_by,style
+Cashews send me to the emergency room.,cashews,,,AI assistant,reaction
+I carry an EpiPen because of peanuts.,peanuts,,,AI assistant,reaction
+I break out in a rash from strawberries.,strawberries,,,AI assistant,reaction
+Sesame seeds are a no-go for me.,sesame,,,AI assistant,indirect
+I can't go near shellfish.,shellfish,,,AI assistant,indirect
+Dairy wrecks my stomach.,dairy,,,AI assistant,reaction
+"Gluten is off limits, I've got coeliac disease.",gluten,,,AI assistant,condition
+Eggs are a problem for me.,eggs,,,AI assistant,indirect
+allergic too fish,fish,,,AI assistant,typos
+algeric to shrimp,shrimp,,,AI assistant,typos
+allergik to nuts,nuts,,,AI assistant,typos
+alergy to soya,soya,,,AI assistant,typos
+severe nut alergy,nuts,,,AI assistant,typos
+Peanut butter is dangerous for me.,peanut,,,AI assistant,indirect
+I get sick if I eat tuna.,tuna,,,AI assistant,reaction
+My lips swell up when I have prawns.,prawns,,,AI assistant,reaction
+I'm coeliac.,gluten,,,AI assistant,condition
+I was diagnosed with a wheat allergy last year.,wheat,,,AI assistant,condition
+The allergist said no tree nuts for me.,tree nuts,,,AI assistant,doctor
+My dietitian wants me to cut out milk completely.,milk,,,AI assistant,doctor
+I have to stay off eggs for medical reasons.,eggs,,,AI assistant,doctor
+Crab makes me throw up.,crab,,,AI assistant,reaction
+I cant have sesam,sesame,,,AI assistant,typos
+no peanuts or walnutts,"peanuts, walnuts",,,AI assistant,typos
+i am allergic to shrimpp and i like rice,shrimp,,rice,AI assistant,typos
+Almonds are dangerous for my daughter and me.,almonds,,,AI assistant,indirect
+"Strictly no soy, I react badly to it.",soy,,,AI assistant,reaction
+I must never eat lobster.,lobster,,,AI assistant,indirect
+I'm sensitive to lactose.,lactose,,,AI assistant,indirect
+Oysters once put me in hospital.,oysters,,,AI assistant,reaction
+Not a fan of cabbage at all.,,cabbage,,AI assistant,dislike
+I'd prefer to skip the mushrooms.,,mushrooms,,AI assistant,dislike
+I really can't do spicy peppers.,,peppers,,AI assistant,dislike
+Salmon is amazing.,,,salmon,AI assistant,like
+I'd happily eat chicken every day.,,,chicken,AI assistant,like
+Lentil soup is my comfort food.,,,lentil,AI assistant,like
+Nothing to report on allergies.,,,,AI assistant,none
+I can eat anything.,,,,AI assistant,none
+I don't have any food allergies but I hate olives.,,olives,,AI assistant,none
+I have no problem with nuts.,,,,AI assistant,none

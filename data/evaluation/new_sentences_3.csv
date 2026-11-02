@@ -1,0 +1,41 @@
+sentence,never,less_often,more_often,written_by,style
+My tongue tingles whenever I eat kiwi.,kiwi,,,AI assistant,reaction
+Hazelnuts give me a nasty reaction.,hazelnuts,,,AI assistant,reaction
+I blow up like a balloon after eating bread.,bread,,,AI assistant,reaction
+I can't breathe properly after eating mussels.,mussels,,,AI assistant,reaction
+Any contact with pistachios is a big risk for me.,pistachios,,,AI assistant,indirect
+Eating cod is not safe for me.,cod,,,AI assistant,indirect
+I must keep clear of soy products.,soy,,,AI assistant,indirect
+Tofu is out of the question for health reasons.,tofu,,,AI assistant,indirect
+Milk products are banned in my diet.,milk,,,AI assistant,indirect
+I have been told by my GP to give up shellfish.,shellfish,,,AI assistant,doctor
+The hospital tested me and I have to stop eating eggs.,eggs,,,AI assistant,doctor
+My nutritionist says wheat is not for me.,wheat,,,AI assistant,doctor
+"Doctors say no sesame, ever.",sesame,,,AI assistant,doctor
+I've been gluten intolerant since childhood.,gluten,,,AI assistant,plain
+Allergies: almonds and sardines.,"almonds, sardines",,,AI assistant,list
+"Allergic: shrimp, crab, lobster.","shrimp, crab, lobster",,,AI assistant,list
+Severe allergy - tree nuts.,tree nuts,,,AI assistant,list
+peanuts = allergy,peanuts,,,AI assistant,list
+im allergc to wallnuts,walnuts,,,AI assistant,typos
+allrgy to salmon,salmon,,,AI assistant,typos
+alergic to lobstar,lobster,,,AI assistant,typos
+intollerant to lactose,lactose,,,AI assistant,typos
+cant eat shelfish,shellfish,,,AI assistant,typos
+no peanutbutter,peanut,,,AI assistant,typos
+I AM ALLERGIC TO EGGS,eggs,,,AI assistant,capitals
+SESAME ALLERGY!!!,sesame,,,AI assistant,capitals
+No more fish for me.,fish,,,AI assistant,indirect
+I stopped eating dairy after a bad reaction.,dairy,,,AI assistant,reaction
+My son and I both react to tuna.,tuna,,,AI assistant,reaction
+I am sensitive to wheat and cannot digest it.,wheat,,,AI assistant,indirect
+I like yogurt because it helps my stomach.,,,yogurt,AI assistant,false alarm
+I love rice and I am trying to breathe better while running.,,,rice,AI assistant,false alarm
+My doctor told me to eat more fish.,,,fish,AI assistant,false alarm
+I no longer dislike eggs.,,,,AI assistant,false alarm
+My sister is allergic to shrimp but I love it.,,,shrimp,AI assistant,false alarm
+Nuts are my favourite snack.,,,nuts,AI assistant,false alarm
+I feel great when I eat salmon.,,,salmon,AI assistant,false alarm
+I have no food allergies.,,,,AI assistant,false alarm
+I dislike celery and I do not like beets.,,"celery, beets",,AI assistant,dislike
+I would like more grilled chicken and lentils.,,,"chicken, lentils",AI assistant,like

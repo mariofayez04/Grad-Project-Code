@@ -236,6 +236,8 @@ def week_pdf(plan, items, user_name, foods=None, compress=True):
         pdf.cell(32, 5.5, label)
         pdf.set_font("Helvetica", "", 9.5)
         pdf.multi_cell(0, 5.5, latin1(", ".join(sorted(set(values))) or "-"), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    for clause in prefs.get("unclear", []):
+        pdf.note(latin1(f'Please check: "{clause}". I could not tell what this means, so nothing was left out because of it.'))
     pdf.ln(3)
     pdf.note("How to use it: tick the [ ] box of every meal you eat, then tick the same meals in the app before "
              "pressing \"Finish week\" - next week's plan learns from what you ate and skipped. Grams are cooked / "
