@@ -187,7 +187,15 @@ def cover(body):
 def front_matter(body):
     head = find_para(body, "Declaration (Optional)")
     set_text(head, "Declaration")
-    set_text(find_para(body, "We hereby certify"), DECLARATION)
+    declaration = find_para(body, "We hereby certify")
+    set_text(declaration, DECLARATION)
+    signed = copy.deepcopy(declaration)
+    set_text(signed, "Student Name: Mario Fayez Sobhy Bebawe\nStudent ID: 23510186\nDate: ____ / ____ / 2026")
+    ind = signed.find(f"{W}pPr/{W}ind")
+    if ind is None:
+        ind = etree.SubElement(signed.find(W + "pPr"), W + "ind")
+    ind.set(W + "firstLine", "0")
+    declaration.addnext(signed)
 
     head = find_para(body, "Acknowledgments (Optional)")
     set_text(head, "Acknowledgments")

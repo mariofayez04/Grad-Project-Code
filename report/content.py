@@ -57,8 +57,8 @@ CHAPTERS = [
           "energy targets, read preferences and allergies from free text using an AI language model with fixed safety rules, solved "
           "portions by optimization, and learned from the meals users ate or skipped. In tests, planned days had a mean calorie error of "
           "2.3%, and no stated allergen reached a plan once it was understood. Testing on new wording exposed a weakness: after a safety "
-          "fix, the parser blocked 68.8% of allergy items on sentences kept apart, and the application asked about most of the others. "
-          "Simulated users received far fewer disliked foods with learning. No study with real users was completed."),
+          "fix, the parser blocked 68.8% of allergy items on sentences kept apart, so an allergy checklist was added. Simulated users "
+          "received far fewer disliked foods with learning. No study with real users was completed."),
     ]},
     # ---------------------------------------------------------------------------------------------- Chapter 1
     {"heading": "Chapter 1", "blocks": [
@@ -76,13 +76,14 @@ CHAPTERS = [
           "user ate or skipped. It also includes Egyptian dishes, so the plans suit the people it was built for."),
     ]},
     {"heading": "1.1 Problem definition", "blocks": [
-        P("Three problems were addressed. First, planning is hard to do by hand. Calculating a calorie target, dividing it into "
-          "protein, carbohydrate and fat, and building meals that meet those numbers takes knowledge and time that most people "
-          "do not have. Second, general plans ignore the individual. A plan written for an average adult does not account for "
+        P("Three problems were addressed. First, planning is hard to do by hand. Unhealthy diets remain a major risk to health (World "
+          "Health Organization, 2026), yet calculating a calorie target, dividing it into protein, carbohydrate and fat, and building "
+          "meals that meet those numbers takes knowledge and time that most people do not have. Second, general plans ignore the individual. A plan written for an average adult does not account for "
           "a person's age, body size, activity level, goal, allergies or culture. Third, plans do not adapt. If a person keeps "
-          "skipping a food, a fixed plan keeps serving it, and the plan is soon abandoned."),
+          "skipping a food, a fixed plan keeps serving it, and food recommendation research treats such changing, personal "
+          "tastes as a central challenge (Trattner and Elsweiler, 2017)."),
         P("Allergies make the problem more serious than convenience. A missed allergy can cause real harm, so a system that "
-          "reads free text must be designed around the fact that a language model will sometimes be wrong."),
+          "reads free text must be designed around the fact that a language model will sometimes be wrong (Niszczota and Rybicka, 2023)."),
     ]},
     {"heading": "1.2 Significance of the Problem", "blocks": [
         P("The scale of diet-related disease (Afshin et al., 2019) means that even a small improvement in everyday eating "
@@ -127,7 +128,9 @@ CHAPTERS = [
           "planned, but a food close to a meal's numbers is not necessarily a sensible part of a meal, so meals are instead "
           "assembled from food roles and their portions are solved by optimization. Nearest-neighbor search is still used, in the "
           "space of food embeddings, for substitutions. Flask was also replaced by Streamlit, which let the work focus on the "
-          "recommendation logic."),
+          "recommendation logic. The proposal also listed a trained recommendation model, and none was trained. A single new user has "
+          "no history to train on, so the project uses pre-trained language models with arithmetic on their vectors, which also "
+          "keeps it free to run on a normal processor."),
     ]},
     {"heading": "1.6 Structure of the Report", "blocks": [
         P("Chapter 2 presents the background to the project and reviews related applications and research. Chapter 3 focuses on "
@@ -309,7 +312,7 @@ CHAPTERS = [
               [["FR1", "Let a user create a private account with a name and a 4 to 8 digit PIN, sign in and out, agree to how their data is used, and delete the account."],
                ["FR2", "Collect age, sex, weight, height, activity level, goal and meals per day, and let the user change them."],
                ["FR3", "Calculate daily calorie, protein, carbohydrate and fat targets, and reference values for six other nutrients."],
-               ["FR4", "Read preferences and allergies from free text, and show the user what it understood."],
+               ["FR4", "Provide an allergy checklist, read preferences and other allergies from free text, and show what it understood."],
                ["FR5", "Never include a food that breaks a stated allergy or diet rule that it has understood."],
                ["FR6", "Ask the user when it cannot tell what a sentence about food or health means."],
                ["FR7", "Generate a seven-day plan with three, four or five meals a day and portions in grams."],
@@ -448,13 +451,18 @@ CHAPTERS = [
           "for men or minus 161 for women. It is multiplied by 1.2, 1.55 or 1.725 for activity, then adjusted by -20% to lose weight "
           "or +10% to gain muscle, with a floor of 1,500 kcal for men and 1,200 kcal for women. Calories are divided into macronutrients "
           "by goal (Table 4-1), and protein is capped at 2.2 g per kg of body weight, with the spare calories going to carbohydrate. "
-          "For the 68 kg, 165 cm, 27-year-old test account in Fig. 4-7, the maintenance target is 2,451 kcal, and the protein "
+          "For the 68 kg, 165 cm, 27-year-old test account in Fig. 4-8, the maintenance target is 2,451 kcal, and the protein "
           "cap reduces protein from 153 g to 150 g."),
         Table("Table 4-1", "Share of daily calories by goal",
               ["Goal", "Protein", "Carbohydrate", "Fat", "Calorie adjustment"],
               [["Maintain weight", "25%", "45%", "30%", "None"], ["Lose weight", "35%", "35%", "30%", "-20%"], ["Gain muscle", "30%", "45%", "25%", "+10%"]],
               [32, 15, 19, 12, 22]),
-        P("**Reading preferences.** The flow in Fig. 4-2 starts by correcting spelling, using the food names and the NER model's own "
+        P("**Allergy checklist.** Everyone answers a checklist of ten allergen groups, or states that they have no food allergies "
+          "(Fig. 4-7). A ticked group is always blocked and involves no language model, so safety for these groups does not depend on "
+          "how a sentence is worded. Accounts from before this feature answer it at their next sign-in, and a ticked allergy rebuilds "
+          "their plan."),
+        P("**Reading preferences.** Free text remains for likes, dislikes and allergies that are not on the list. The flow in Fig. 4-2 "
+          "starts by correcting spelling, using the food names and the NER model's own "
           "vocabulary so that ordinary words are left alone. Foods are then found by the model together with a dictionary scan, and "
           "each is labeled block, avoid or prefer by the nearest cue phrase. Health wording overrules softer labels: a body reaction, a "
           "condition such as celiac disease, or a doctor's advice counts as a block. Every blocked word is then checked against the "
@@ -475,8 +483,7 @@ CHAPTERS = [
         Fig("fig_4_4_feedback.png", "Figure 4-4", "How each week teaches the next", 0.9),
     ]},
     {"heading": "4.2 Implementation", "blocks": [
-        P("The system was written in Python as 19 modules plus the interface. Each of the eight phases was added and reviewed in turn, "
-          "followed by ten further features, and version control kept every step."),
+        P("The system was written in Python as 19 modules plus the interface, and version control kept every step."),
         H3("4.2.1 Experimental Setup"),
         P("Development and evaluation ran on a Windows 11 laptop with an Intel Core i7-10750H processor and 16 GB of memory, using the "
           "processor only. Evaluation scripts use fixed random seeds, so results can be reproduced, and they save their results in "
@@ -506,24 +513,26 @@ CHAPTERS = [
         H3("4.2.3 User Interface"),
         P("The interface has a top menu with five pages and works in light and dark themes. A review of user complaints about "
           "similar applications shaped its design: features are one click from the menu, nutrients are in plain view, and status words "
-          "stay neutral, such as \"a little under or over\" and never \"bad\". Figures 4-5 to 4-13 are screenshots of the real "
+          "stay neutral, such as \"a little under or over\" and never \"bad\". Figures 4-5 to 4-14 are screenshots of the real "
           "application, using a test account."),
         Fig("fig_4_5_welcome.png", "Figure 4-5", "Welcome page with sign-in", 0.97),
         Fig("fig_4_6_profile.png", "Figure 4-6", "Profile page", 0.97),
-        P("The Plan page (Fig. 4-7) shows the daily targets and what the system understood. In this example, the typed text contains a "
+        Fig("fig_4_6b_checklist.png", "Figure 4-7", "Allergy checklist, preferences and consent", 0.5),
+        P("The Plan page (Fig. 4-8) shows the daily targets and what the system understood. In this example, the typed text contains a "
           "spelling mistake, which is reported, and a sentence that the system could not act on, so it asks the user to check it."),
-        Fig("fig_4_7_plan.png", "Figure 4-7", "Plan page: targets, what was understood, and a request to check", 0.97),
-        P("Each meal card (Fig. 4-8) shows foods, grams and macronutrients, with buttons to swap a food, ask for a new meal, or mark it as "
+        Fig("fig_4_7_plan.png", "Figure 4-8", "Plan page: targets, what was understood, and a request to check", 0.97),
+        P("Each meal card (Fig. 4-9) shows foods, grams and macronutrients, with buttons to swap a food, ask for a new meal, or mark it as "
           "eaten. Egyptian dishes also show their Arabic name and their ingredients. A new version appears beside the current one, and "
-          "the application marks the one closer to the targets (Fig. 4-9). Each day ends with its totals (Fig. 4-10)."),
-        Fig("fig_4_8_meals.png", "Figure 4-8", "Meal cards", 0.97),
-        Fig("fig_4_9_compare.png", "Figure 4-9", "Comparing the current meal with a new version", 0.97),
-        Fig("fig_4_10_totals.png", "Figure 4-10", "Day totals against targets", 0.97),
-        Fig("fig_4_11_nutrients.png", "Figure 4-11", "Nutrients page", 0.97),
-        Fig("fig_4_12_shopping.png", "Figure 4-12", "Shopping list, in raw or dry amounts to buy", 0.97),
-        Fig("fig_4_13_progress.png", "Figure 4-13", "Progress page: finishing the week and tracking weight", 0.97),
+          "the application marks the one closer to the targets (Fig. 4-10). Each day ends with its totals (Fig. 4-11)."),
+        Fig("fig_4_8_meals.png", "Figure 4-9", "Meal cards", 0.97),
+        Fig("fig_4_9_compare.png", "Figure 4-10", "Comparing the current meal with a new version", 0.97),
+        Fig("fig_4_10_totals.png", "Figure 4-11", "Day totals against targets", 0.97),
+        Fig("fig_4_11_nutrients.png", "Figure 4-12", "Nutrients page", 0.97),
+        Fig("fig_4_12_shopping.png", "Figure 4-13", "Shopping list, in raw or dry amounts to buy", 0.97),
+        Fig("fig_4_13_progress.png", "Figure 4-14", "Progress page: finishing the week and tracking weight", 0.97),
         H3("4.2.4 Application Components"),
-        P("Table 4-3 lists the main components. They are joined together by plain function calls through app.py, and each person's data "
+        P("The full source code is available at https://github.com/mariofayez04/Grad-Project-Code, and the hosted application at "
+          "https://grad-project-code.vercel.app. Table 4-3 lists the main components. They are joined together by plain function calls through app.py, and each person's data "
           "passes through db.py. Models load once and are shared between visitors, so a plan takes seconds after start-up. A plan "
           "stores its own targets and understood preferences, so a saved week does not change if a profile is edited later."),
         Table("Table 4-3", "Main components of the application",
@@ -535,17 +544,17 @@ CHAPTERS = [
                ["shopping.py, report.py, progress.py", "Shopping list, PDF plan, weight progress"], ["db.py", "SQLite or PostgreSQL storage; PIN security"],
                ["evaluate.py, testers.py, heldout.py", "Evaluation tools"]],
               [40, 60]),
-        P("Three short pieces of code show the system's core. The function in Fig. 4-14 solves a meal's portions. Each row of the "
+        P("Three short pieces of code show the system's core. The function in Fig. 4-15 solves a meal's portions. Each row of the "
           "problem is one of the four targets, scaled so that errors are relative and calories count the most. SciPy finds the grams "
           "that come closest within each food's limits, and the result is rounded to 5 g, because nobody weighs 143.7 g of rice."),
-        Fig("fig_4_5_code_solve_grams.png", "Figure 4-14", "Solving a meal's portions (src/planner.py)"),
-        P("The function in Fig. 4-15 is the learning step. It adds a share of the average vector of eaten foods, subtracts a smaller "
+        Fig("fig_4_5_code_solve_grams.png", "Figure 4-15", "Solving a meal's portions (src/planner.py)"),
+        P("The function in Fig. 4-16 is the learning step. It adds a share of the average vector of eaten foods, subtracts a smaller "
           "share for skipped foods, and rescales the result. This is plain arithmetic on vectors from a pre-trained model, so it "
           "needs no training and no graphics card."),
-        Fig("fig_4_6_code_update_taste.png", "Figure 4-15", "Updating the taste vector (src/feedback.py)"),
-        P("The function in Fig. 4-16 is part of the safety layer. Health wording near a food overrules a softer label, except that "
+        Fig("fig_4_6_code_update_taste.png", "Figure 4-16", "Updating the taste vector (src/feedback.py)"),
+        P("The function in Fig. 4-17 is part of the safety layer. Health wording near a food overrules a softer label, except that "
           "a weak word such as \"stomach\" does not overrule a stated like, so \"yogurt is good for my stomach\" stays a like."),
-        Fig("fig_4_7_code_health_upgrade.png", "Figure 4-16", "Health wording overrules softer labels (src/parser.py)"),
+        Fig("fig_4_7_code_health_upgrade.png", "Figure 4-17", "Health wording overrules softer labels (src/parser.py)"),
         P("**Security.** PINs are stored only as salted PBKDF2-SHA256 hashes with 200,000 rounds. Five wrong PINs lock an account for five "
           "minutes, and a wrong name and a wrong PIN give the same message. A page reload keeps the user signed in through a signed "
           "link, so typing another user's number in the address opens nothing. New users must agree to how their data is used before "
@@ -565,7 +574,7 @@ CHAPTERS = [
                ["Deployment checks", "The container and the hosted site", "Local container with the host's limits; sign-in on the live site"],
                ["Manual checks", "Layout and interaction", "Every page in a browser, at desktop and phone widths, in both themes"]],
               [21, 38, 41]),
-        P("The parser tests were designed to reduce bias. Set 1 and set 2 were saved before the parser was run on them. Set 3 was "
+        P("The parser tests were designed to reduce bias. Set 3 was "
           "written after the rules were frozen and scored only once. All three were written by an AI assistant, as were the simulated "
           "testers, so they are not a substitute for real users, as Chapter 5 discusses."),
     ]},
@@ -577,13 +586,13 @@ CHAPTERS = [
     # ---------------------------------------------------------------------------------------------- Chapter 5
     {"heading": "Chapter 5", "blocks": [
         P("This chapter presents the results, tests what each part of the system adds, checks the results against the project's goals, "
-          "and discusses further work and wider implications. One limit applies throughout: no study with real users was completed. "
-          "All users in these tests are simulated, and all new test sentences were written by an AI assistant, so the results show "
-          "how the system behaves, and not whether people would like it or trust it."),
+          "and discusses further work and wider implications. One limit applies throughout: all users in these tests are simulated, and all new test sentences were written by an AI "
+          "assistant, so the results show how the system behaves, not whether people would trust it."),
     ]},
     {"heading": "5.1 Findings", "blocks": [
         P("The main product is a working web application, available on a PC and on a hosted site where sign-up and sign-in were "
-          "confirmed by hand. All 270 automated tests pass, on both SQLite and PostgreSQL."),
+          "confirmed by hand. All 281 automated tests pass, on both SQLite and PostgreSQL. Fig. 5-1 shows a run of the test suite."),
+        Fig("fig_5_0_tests.png", "Figure 5-1", "A run of the automated test suite"),
         H3("5.1.1 Experimental Results"),
         P("**Accuracy.** Table 5-1 shows how close planned days came to their targets for 30 random users over 7 days. Calories had a mean "
           "error of 2.3%, and 98.1% of days were within 10%. Protein was the least reliable at the extremes: 7.1% of days were more than "
@@ -595,8 +604,7 @@ CHAPTERS = [
         P("**Allergy safety when the allergy is understood.** Across 20 random users with stated allergies, 0 of 1,652 food items contained "
           "a stated allergen, including 145 Egyptian dish servings. Across the 20 simulated testers using usual wording, 0 of 12,932 "
           "items broke a stated allergy or diet rule over four weeks. The allergen dictionary scored 100% precision and recall on 32 "
-          "hand-labeled foods, although those cases were used while writing it, so that score is optimistic. These results say "
-          "that the filter works. Whether an allergy reaches the filter depends on the parser."),
+          "hand-labeled foods, although those cases were used while writing it, so that score is optimistic."),
         P("**Allergy safety when the wording is new.** This was the most important finding of the project. The parser scored 100% on the "
           "32 sentences written during development, which suggested the problem was solved. New sentences showed otherwise: only 18 of "
           "27 allergy items were blocked in the first set (Table 5-2). \"im alergic to peanuts\" blocked nothing, and four simulated "
@@ -608,32 +616,34 @@ CHAPTERS = [
                ["Set 2: failures seen while fixing", "40", "7 of 30 (23.3%)", "30 of 30", "0 of 0"],
                ["Set 3: kept apart, scored once", "40", "Not measured", "22 of 32 (68.8%)", "7 of 10"]],
               [36, 12, 18, 16, 18]),
-        P("Set 3 is the fair measure, and Fig. 5-1 shows the pattern. The perfect scores on sets 1 and 2 show that the fix handles the "
+        P("Set 3 is the fair measure, and Fig. 5-2 shows the pattern. The perfect scores on sets 1 and 2 show that the fix handles the "
           "wording it was built from, while 68.8% is closer to what new wording can expect. A later rule makes the application ask about "
           "unclear sentences, which covers 7 of the 10 misses, so 3 of 32 items (9.4%) were missed silently. That rule was added "
           "after seeing set 3, so it is not an independent result. One such sentence, \"I blow up like a balloon after eating bread\", "
-          "even reads as a like, because of the word \"like\". The system should therefore not be relied on for serious allergies "
-          "without the user checking what it understood, which the Plan page is designed to allow."),
-        Fig("fig_5_2_parser_sets.png", "Figure 5-1", "Allergy items handled by the parser, on each set of sentences"),
+          "even reads as a like, because of the word \"like\". Free text should therefore not be relied on for serious allergies."),
+        P("**Allergy checklist.** This finding led to a checklist that needs no language model. Across 15 people who ticked allergen "
+          "groups and typed nothing, 0 of 1,239 food items contained a ticked allergen, at a mean calorie error of 1.9%. If the people "
+          "in set 3 also ticked the matching boxes, all 32 items would be blocked. That is true by design, not a test of "
+          "behavior: it assumes that people tick the right box, which has not been tested with real users, and allergies outside the "
+          "ten groups, such as the kiwi in set 3, still depend on free text."),
+        Fig("fig_5_2_parser_sets.png", "Figure 5-2", "Allergy items handled by the parser, on each set of sentences"),
         P("Likes and dislikes were weaker. On set 3, 100% of dislikes and 75% of likes were found, but on set 2 these were 50% and 25%. "
           "Indirect wording such as \"Salmon is amazing\" is often missed. The harm is smaller here, as a missed like only "
           "lowers the quality of the suggestions."),
-        P("**Learning.** Fig. 5-2 shows 17 simulated testers with hidden dislikes that they never typed. With learning, the meals they ate "
+        P("**Learning.** Fig. 5-3 shows 17 simulated testers with hidden dislikes that they never typed. With learning, the meals they ate "
           "rose from 78.4% in week 1 to between 87.4% and 90.6% after that, and disliked foods served fell from 5.8 to 0.8 a week. "
-          "Without learning, both stayed about the same. A simpler earlier test, in which users always skip a disliked food, gave 96% to "
-          "100% from week 2. These results depend on the assumed habits, such as skipping 90% of meals with a disliked food. They show "
+          "Without learning, both stayed about the same. These results depend on the assumed habits, such as skipping 90% of meals with a disliked food. They show "
           "that the mechanism works, not how quickly real tastes would be learned."),
-        Fig("fig_5_1_learning.png", "Figure 5-2", "Simulated testers with and without weekly learning"),
-        P("**Nutrients.** Planning for nutrients as well as macronutrients improved every measure (Fig. 5-3). Days over the sodium limit "
+        Fig("fig_5_1_learning.png", "Figure 5-3", "Simulated testers with and without weekly learning"),
+        P("**Nutrients.** Planning for nutrients as well as macronutrients improved every measure (Fig. 5-4). Days over the sodium limit "
           "fell from 46.4% to 0%. This cost a little accuracy: macronutrient error rose from 3.1% to 4.2% on the same users, which was "
-          "accepted. Calcium remains the hardest, on target on 82.1% of days. Fiber went over its comfort limit on 2.4% of days. In diet "
+          "accepted. Calcium remains the hardest, on target on 82.1% of days. In diet "
           "modes, 8 random users received 530 mg of sodium a day in low-salt mode, and 32 g of sugars in diabetes-friendly mode, with no "
           "excluded foods served. These are planned amounts, which do not count salt added in cooking, and they are not evidence of any "
           "health outcome."),
-        Fig("fig_5_3_nutrients.png", "Figure 5-3", "Days on target, with and without nutrient-aware planning (84 days)"),
+        Fig("fig_5_3_nutrients.png", "Figure 5-4", "Days on target, with and without nutrient-aware planning (84 days)"),
         P("**Other results.** A week took 3.42 seconds on average to plan (4.14 seconds at most) on the laptop. Egyptian dishes made up about "
-          "6.2 meals a week on the \"sometimes\" setting and 10.5 on \"often\". The food embeddings improved with cleaned text and "
-          "category: 98.1% of each food's five nearest neighbors shared its category, compared with 89.1% for raw USDA names. On the "
+          "6.2 meals a week on the \"sometimes\" setting and 10.5 on \"often\". On the "
           "hosted site, a visitor can wait about 20 seconds after an idle period, based on a container test, and the free plan closes "
           "the live connection every 5 minutes."),
         P("**Real use.** The local database held 4 profiles and 10 plans, with only 1 week finished, by 1 person, who ticked 89.3% of meals. "
@@ -667,7 +677,7 @@ CHAPTERS = [
               ["Objective", "Result", "Evidence"],
               [["1. Calculate targets", "Achieved", "Tests against hand-calculated values"],
                ["2. Prepare clean food data", "Achieved", "3,204 foods with allergen and diet tags"],
-               ["3. Read preferences and apply allergies", "Partly", "Filter never failed when understood; 68.8% of new-wording items blocked"],
+               ["3. Read preferences and apply allergies", "Partly", "Ticked allergies never served; free text blocked 68.8% of new-wording items"],
                ["4. Generate a week with portions", "Achieved", "2.3% calorie error; 98.1% of days within 10%"],
                ["5. Learn from behavior", "Achieved in simulation", "Disliked foods 5.8 to 0.8 a week; no real-user test"],
                ["6. Simple interface, private accounts", "Achieved", "Tests and manual checks; usability not tested with people"],
@@ -676,14 +686,14 @@ CHAPTERS = [
         P("The non-functional requirements in Table 3-2 were mostly met, as measured: calorie accuracy (NFR1), speed on the laptop (NFR3), "
           "PIN security (NFR4), privacy of names and links (NFR5), portability (NFR8), free tools (NFR9) and automated tests (NFR10). "
           "Reliability (NFR7) was shown by restarting the app and database in a test environment, and by signing in again on the live site. "
-          "Safety (NFR2) was met only for understood allergies, and usability (NFR6) was checked by the developer alone."),
+          "Safety (NFR2) was met for ticked and understood allergies, but free text alone remains unreliable, and usability (NFR6) was "
+          "checked by the developer alone."),
     ]},
     {"heading": "5.3 Further Work", "blocks": [
-        P("Further work falls into two groups: new directions suggested by the results, and parts that could not be completed."),
-        H3("5.3.1 Enhancements and Future Features"),
+                H3("5.3.1 Enhancements and Future Features"),
         Bullets([
             "Understanding allergy sentences by meaning, for instance a sentence classifier trained on health statements, since failures came from the wording around foods.",
-            "Asking the user to confirm every allergy in a clear step before the first plan, so no allergy depends on wording alone.",
+            "Extending the allergy checklist beyond its ten groups, and testing with real people whether they complete it correctly.",
             "Support for Arabic preferences, which suits the Egyptian users this project aims at.",
             "More Egyptian dishes, with nutrients checked against measured data, and more food data with ingredient lists.",
             "A mobile application, and a hosting plan that avoids the 5-minute disconnection.",
@@ -703,8 +713,8 @@ CHAPTERS = [
           "disorders, so the application includes a calorie floor, warnings on low body weight and on losing weight too fast, and a "
           "note to follow medical advice. It does not detect eating disorders, and people with them are outside its scope."),
         P("**Professional and safety.** Nutrition advice affects health, so the application states that it is for education only and is not "
-          "medical advice, and diet modes state that they are not a treatment. The largest professional concern is an allergy that "
-          "the parser misses. For that reason, this report gives the less flattering 68.8% as the fair figure instead of the "
+          "medical advice, and diet modes state that they are not a treatment. The largest professional concern is a missed allergy, which is why a "
+          "checklist was added and why food names cannot replace reading labels. For the same reason, this report gives the less flattering 68.8% as the fair figure instead of the "
           "100% from the sentences that shaped the rules, and it says plainly which results are simulated."),
         P("**Legal and privacy.** Body measurements and health focus are personal data. Egypt's personal data protection law (Arab Republic of "
           "Egypt, 2020) treats health data as sensitive, and summaries of the law describe explicit consent as the general rule for "
@@ -722,8 +732,8 @@ CHAPTERS = [
     {"heading": "5.5 Summary", "blocks": [
         P("The system met its targets for calories and nutrients, kept stated allergens out of plans when it understood them, and learned from "
           "simulated behavior. Testing on new wording found a serious weakness that the development tests had hidden: even after a "
-          "fix, 68.8% of allergy items were blocked on a fair test, with the application asking about most of the rest. The main "
-          "gap is the lack of a study with real users."),
+          "fix, 68.8% of allergy items were blocked on a fair test, which led to an allergy checklist that needs no language model. "
+          "The main gap is the lack of a study with real users."),
     ]},
     # ---------------------------------------------------------------------------------------------- Chapter 6
     {"heading": "Chapter 6", "blocks": [
@@ -746,7 +756,7 @@ CHAPTERS = [
           "allergen reached a plan when the allergy had been understood, and simulated users with hidden dislikes received far fewer of "
           "those foods with learning than without. The most valuable result was a negative one. A parser that scored 100% on its own "
           "sentences blocked only 18 of 27 allergy items on new wording. After a safety layer was added, it blocked 22 of 32 on a set "
-          "kept apart from the work, and it asks the user about most of the rest."),
+          "kept apart from the work, so an allergy checklist was added that needs no language model at all."),
         P("The project is not finished as a public service. It has not been tested with real people, so user satisfaction is unknown. "
           "It needs a legal review before public use, and a better way of understanding allergy sentences. Even so, "
           "the objectives were met in full or in part, and the system shows that useful personal planning is possible with free data, "
@@ -757,7 +767,7 @@ CHAPTERS = [
         Numbered([
             "**A complete, working system.** It joins free-text preferences, fixed allergy rules, calculated portions, nutrient-aware planning and weekly learning in one application, rather than studying one of them alone.",
             "**A division of work between AI and rules.** Models read text and compare foods, while formulas, optimization and a fixed dictionary handle numbers and safety. The ablation study supports this: allergy failures came from wording, not from finding foods.",
-            "**Evidence on testing language-based safety features.** The gap between 100% on development sentences and 68.8% on sentences kept apart shows why a food-safety feature must be tested on wording it has not seen, and why it should ask when unsure.",
+            "**Evidence on testing language-based safety features.** The gap between 100% on development sentences and 68.8% on sentences kept apart shows why a food-safety feature must be tested on wording it has not seen, and why it should ask when unsure, or avoid free text for the most serious cases.",
             "**Meal planning with Egyptian food.** Twenty dishes are built from USDA ingredients, with calculated nutrients and allergens, so that they take part in planning, swaps, shopping lists and learning like any other food.",
             "**A reusable evaluation approach.** Simulated testers, a comparison with learning switched off, and tools ready for a real-user pilot allow later work to repeat and extend these results.",
         ]),
@@ -772,7 +782,7 @@ CHAPTERS = [
                "أما كميات الطعام فتُحسب بطريقة رياضية لا تترك للنموذج، كما يتعلم النظام كل أسبوع من الوجبات التي تناولها المستخدم أو تركها."),
         Arabic("أظهرت الاختبارات أن متوسط الخطأ في السعرات بلغ 2.3%، وأن 98.1% من الأيام جاءت في حدود 10% من الهدف، ولم يصل أي مسبب حساسية إلى الخطة متى فهمه النظام. "
                "غير أن أهم نتيجة جاءت من اختبار جمل جديدة لم يُبنَ عليها النظام، إذ كشفت ضعفًا لم تظهره الاختبارات الأولى. وبعد إضافة طبقة للسلامة، منع النظام 68.8% من حالات الحساسية في مجموعة جمل حُفظت جانبًا لهذا الغرض، وصار يسأل المستخدم عن معظم الحالات الأخرى. "
-               "ولهذا لا يصح الاعتماد عليه وحده في حالات الحساسية الخطيرة."),
+               "ولهذا لا يصح الاعتماد على النص وحده في حالات الحساسية الخطيرة، فأضيفت قائمة اختيارات لمسببات الحساسية لا تعتمد على أي نموذج لغوي."),
         Arabic("وأجريت الاختبارات على مستخدمين افتراضيين، ولم تكتمل تجربة مع مستخدمين حقيقيين، فبقي رضا المستخدمين غير مقيس، وهذه هي الخطوة التالية الأهم. "
                "كما أضيفت خلال المشروع موافقة صريحة على حفظ البيانات وإمكانية حذف الحساب، مراعاةً لخصوصية البيانات الصحية. "
                "ويبين المشروع في مجمله أن التخطيط الغذائي الشخصي ممكن ببيانات ونماذج مجانية، بشرط توزيع الأدوار بين الذكاء الاصطناعي والقواعد الثابتة، والصدق في عرض حدود النظام."),

@@ -63,6 +63,29 @@ def draw(name, path, function):
     print(name, len(rows), "rows")
 
 
+def draw_test_run():
+    """The saved output of a real test run (data/evaluation/test_run.txt), as a light-mode image."""
+    lines = (ROOT / "data" / "evaluation" / "test_run.txt").read_text(encoding="utf-8").splitlines()
+    keep = [line for line in lines if line.strip() and not line.startswith(("rootdir", "plugins", "cachedir"))]
+    row = 0.2
+    height = 0.12 + row * len(keep)
+    fig = plt.figure(figsize=(7.4, height), facecolor="white")
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis("off")
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    step = row / height
+    y = 1 - step * 0.8
+    for line in keep:
+        color = "#1a7f4b" if "passed" in line else "#1b1f24"
+        ax.text(0.008, y, line, fontsize=FONT, family="Consolas", color=color, va="center", fontweight="bold" if "passed" in line else "normal")
+        y -= step
+    fig.savefig(OUT / "fig_5_0_tests.png", dpi=220, facecolor="white", bbox_inches="tight", pad_inches=0.05)
+    plt.close(fig)
+    print("test run", len(keep), "rows")
+
+
 if __name__ == "__main__":
     for figure in FIGURES:
         draw(*figure)
+    draw_test_run()
