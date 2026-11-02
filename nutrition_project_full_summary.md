@@ -883,3 +883,38 @@ Why: plans hit their numbers with meals nobody would eat (a lunch with 305 g of 
 - **Pilot kit:** `data/evaluation/pilot_message.md` (message for friends, English and Arabic) and `meal_rating_sheet.xlsx` (20 real planned meals for a qualified person to rate, `python -m src.portions --sheet`). Both are unused so far: the report must not claim any real-user or expert result until they come back.
 - The fasting, Arabic input, budget, "why this meal", leftovers, family and photo features were suggested and declined by the user, so none was built.
 - Tests: 281 -> 284.
+
+### 17.16 Meal quality (2026-11-02)
+
+Why: after 17.15 the amounts were sensible but the foods were not always. Plans served soybean lecithin, hulled barley, raw broccoli stalks and dried fruit "stewed", unusual foods such as crayfish and tempeh, two bean or soy foods at one meal, and cereal without milk. This replaces the "+20%" and the "after" column in 17.15.
+
+- **Everyday foods (`src/planner.py`):** `EVERYDAY` lists usual foods per part of a meal, and `is_everyday()` checks them. Other foods lose `W_UNFAMILIAR = 1.5` when ranking, so they are preferred against, not banned: a vegetarian with few options still gets a full plan.
+- **Left out:** items not eaten as they are (lecithin, hulled grains, "as purchased" pasta, stalks, peel, puree, sauce, stewed dried fruit, burger rolls and more). `SIDE_CARB` is now rice, bread, pita, potatoes and bulgur.
+- **Combinations:** `combo_allowed()` allows at most one bean or soy food a meal, and cereal at breakfast needs dairy. A dish with its own starch gets no carbohydrate side, and a dish with meat gets no protein side. A side under `MIN_SIDE_GRAMS = 30` is dropped and the meal is solved again.
+- **Bigger eaters:** `MAX_PORTION_SCALE` went from 1.2 to 1.35, because 1.2 with these rules dropped days within 10% of calories to 90.5%, mostly for targets of 2,800+ kcal. This gave back part of the portion gains from 17.15.
+- **Measured (`python -m src.portions`), 30 users x 7 days:**
+
+| Measure | Before the meal rules | After |
+|---|---|---|
+| Everyday foods | 64.4% | 98.6% |
+| Items nobody should be served | 209 | 0 |
+| Meals with two bean or soy foods, or cereal without milk | 103 of 840 | 0 of 840 |
+| Dishes with their own starch plus a carbohydrate | 31 | 0 |
+
+  These measure the rules themselves, and the everyday list is a judgment. They show that the rules work as written, not that people like the meals.
+
+| Measure | Original (before 17.15) | 17.15 | Now |
+|---|---|---|---|
+| Foods over a generous serving | 18.6% | 12.9% | 13.9% (3.4% under 2,800 kcal, 42.4% at 2,800+) |
+| Largest single food | 560 g | 335 g | 375 g |
+| Main meals over 800 g | 21.7% | 11.9% | 18.1% |
+| Heaviest main meal | 1,480 g | 1,160 g | 1,275 g |
+| Calorie error | 2.3% | 3.2% | 3.1% |
+| Days within 10% of calories | 98.1% | 95.7% | 94.3% |
+| Protein error | 4.3% | 5.6% | 5.2% |
+
+- **Costs, stated in the report too:** days on the calcium target fell from 78.6% to 56.0%, probably because canned salmon and calcium-set tofu are served less often. Planning a week went from 3.40 s to 4.50 s on average (6.48 s at most, still under the 10 s requirement). Main meals over 800 g rose again, from 11.9% to 18.1%.
+- **Safety and learning, re-measured:** 0 of 1,670 items with a stated allergen (128 dish servings); testers 0 of 12,891; checklist 0 of 1,262 at 2.1% calorie error. Testers ate 79.9% of meals in week 1 and 86.0-88.3% after; disliked foods 5.8 -> 1.0 a week. Parser sets did not change (set 3 is still 22 of 32).
+- **Rating sheet:** `meal_rating_sheet.xlsx` was regenerated with the new meals. It is ready to send, and no qualified person has rated anything yet.
+- **Report:** all numbers, the screenshots, Fig. 4-3 and Table 5-3 updated; a meal quality finding added. Chapters kept under 10,000 words by trimming repeated text. The 5.5 summary now says "most nutrient targets", since calcium is not met.
+- Tests: 284 -> 294, on SQLite and PostgreSQL.

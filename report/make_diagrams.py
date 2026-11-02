@@ -272,7 +272,7 @@ def parser_flow():
 def planner_flow():
     fig, ax = canvas(9.2, 3.3)
     steps = [("Allowed foods", "allergies, diet rules and\ndiet modes removed", GREY),
-             ("Score candidates", "job fit + taste + likes\n+ nutrients - repeats\n- learned penalties", BLUE),
+             ("Score candidates", "job fit + taste + likes\n+ nutrients - repeats\n- unusual foods - learned", BLUE),
              ("Combine", "top foods per part of\nthe meal; also one dish\nplus optional sides", BLUE),
              ("Solve grams", "bounded least squares\nagainst what is left\nof the day", GREEN),
              ("Best meal wins", "fit + score, under the\ndaily nutrient caps", BLUE)]
