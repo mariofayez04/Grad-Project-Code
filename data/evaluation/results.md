@@ -8,24 +8,24 @@ Absolute % difference between each day's planned total and the user's target.
 
 | Macro | Mean error | Median error | 95th percentile | Days within ±10% |
 |---|---|---|---|---|
-| Calories | 2.3% | 1.8% | 6.0% | 98.1% |
-| Protein | 4.3% | 2.7% | 13.9% | 92.9% |
-| Carbs | 3.0% | 2.6% | 6.6% | 99.5% |
-| Fat | 4.8% | 4.4% | 10.2% | 94.3% |
+| Calories | 3.2% | 2.2% | 9.2% | 95.7% |
+| Protein | 5.6% | 3.2% | 22.2% | 87.1% |
+| Carbs | 3.7% | 3.1% | 8.1% | 98.1% |
+| Fat | 4.9% | 4.7% | 10.2% | 93.8% |
 
 By goal (mean % error):
 
 | Goal | Calories % | Protein % | Carbs % | Fat % |
 |---|---|---|---|---|
-| gain | 1.9 | 4.4 | 2.5 | 4.1 |
-| lose | 2.8 | 5.9 | 3.8 | 5.7 |
-| maintain | 2.0 | 2.6 | 2.8 | 4.7 |
+| gain | 3.5 | 5.9 | 4.0 | 4.2 |
+| lose | 3.5 | 6.9 | 4.0 | 5.4 |
+| maintain | 2.6 | 3.7 | 2.9 | 5.2 |
 
 ## 2. Allergy safety (20 random users with 1-3 stated allergies)
 - Allergies fully detected by the parser: **100.0%**
-- Food items served: 1,652
+- Food items served: 1,680
 - Items containing a stated allergen: **0**
-- Of which Egyptian dishes served: 145 (their allergens come from their ingredients)
+- Of which Egyptian dishes served: 131 (their allergens come from their ingredients)
 
 ## 3. Allergen tagger (deterministic dictionary, 32 hand-labelled foods, 52 decisions)
 - Precision: **100.0%**   Recall: **100.0%**
@@ -51,59 +51,59 @@ Share of meals eaten:
 
 | Hidden dislike | Mode | Week 1 | Week 2 | Week 3 | Week 4 |
 |---|---|---|---|---|---|
-| dislikes beef & lamb | no feedback | 84.5% | 84.5% | 79.8% | 79.8% |
-| dislikes beef & lamb | with feedback | 84.5% | 96.4% | 100.0% | 98.8% |
-| dislikes eggs & cottage cheese | no feedback | 77.4% | 78.6% | 81.0% | 75.0% |
-| dislikes eggs & cottage cheese | with feedback | 77.4% | 96.4% | 96.4% | 98.8% |
-| dislikes fish & seafood | no feedback | 86.9% | 89.3% | 84.5% | 86.9% |
-| dislikes fish & seafood | with feedback | 86.9% | 100.0% | 100.0% | 100.0% |
+| dislikes beef & lamb | no feedback | 86.9% | 84.5% | 83.3% | 82.1% |
+| dislikes beef & lamb | with feedback | 86.9% | 94.1% | 98.8% | 100.0% |
+| dislikes eggs & cottage cheese | no feedback | 79.8% | 80.9% | 83.3% | 80.9% |
+| dislikes eggs & cottage cheese | with feedback | 79.8% | 94.1% | 96.4% | 100.0% |
+| dislikes fish & seafood | no feedback | 85.7% | 85.7% | 86.9% | 86.9% |
+| dislikes fish & seafood | with feedback | 85.7% | 100.0% | 100.0% | 100.0% |
 
 Disliked foods served per week:
 
 | Hidden dislike | Mode | Week 1 | Week 2 | Week 3 | Week 4 |
 |---|---|---|---|---|---|
-| dislikes beef & lamb | no feedback | 4.3 | 4.3 | 5.7 | 5.7 |
-| dislikes beef & lamb | with feedback | 4.3 | 1.0 | 0.0 | 0.3 |
-| dislikes eggs & cottage cheese | no feedback | 6.7 | 6.3 | 5.3 | 7.3 |
-| dislikes eggs & cottage cheese | with feedback | 6.7 | 1.0 | 1.0 | 0.3 |
-| dislikes fish & seafood | no feedback | 3.7 | 3.0 | 4.3 | 3.7 |
-| dislikes fish & seafood | with feedback | 3.7 | 0.0 | 0.0 | 0.0 |
+| dislikes beef & lamb | no feedback | 3.7 | 4.3 | 4.7 | 5.0 |
+| dislikes beef & lamb | with feedback | 3.7 | 1.7 | 0.3 | 0.0 |
+| dislikes eggs & cottage cheese | no feedback | 6.0 | 6.0 | 4.7 | 5.7 |
+| dislikes eggs & cottage cheese | with feedback | 6.0 | 1.7 | 1.0 | 0.0 |
+| dislikes fish & seafood | no feedback | 4.0 | 4.0 | 3.7 | 3.7 |
+| dislikes fish & seafood | with feedback | 4.0 | 0.0 | 0.0 | 0.0 |
 
 ## 7. Speed
-- Weekly plan generation: mean **3.42 s**, max 4.14 s (after models are loaded).
+- Weekly plan generation: mean **3.40 s**, max 4.65 s (after models are loaded).
 
 ## 8. Nutrients (84 planned days; same users, same seeds) - nutrient-aware planner vs macros only
 "On target" = at least the daily minimum (fiber, potassium, calcium, iron) or at most the limit (saturated fat, sodium).
 
 | Nutrient | Days on target - macros only | Days on target - nutrient-aware (final) |
 |---|---|---|
-| Calcium | 38.1% | 82.1% |
-| Fiber | 54.8% | 97.6% |
-| Iron | 67.9% | 97.6% |
-| Potassium | 69.0% | 97.6% |
+| Calcium | 32.1% | 78.6% |
+| Fiber | 54.8% | 98.8% |
+| Iron | 66.7% | 92.9% |
+| Potassium | 56.0% | 92.9% |
 | Saturated fat | 95.2% | 100.0% |
-| Sodium | 53.6% | 100.0% |
+| Sodium | 72.6% | 100.0% |
 
 Days over a daily cap (iron 45 mg and calcium 2,500 / 2,000 mg = safe upper limits; fiber 2x its target; sodium and
 saturated fat their limits):
 
 | Nutrient | Days over cap - macros only | Days over cap - nutrient-aware (final) |
 |---|---|---|
-| Calcium | 2.4% | 0.0% |
+| Calcium | 1.2% | 0.0% |
 | Fiber | 1.2% | 2.4% |
 | Iron | 1.2% | 0.0% |
 | Saturated fat | 4.8% | 0.0% |
-| Sodium | 46.4% | 0.0% |
+| Sodium | 27.4% | 0.0% |
 
-Macro error: 3.1% (macros only) vs 4.2% (nutrient-aware).
+Macro error: 4.0% (macros only) vs 4.7% (nutrient-aware).
 
 ## 9. Diet modes (8 random users per mode, 1 week each)
 | Mode | Sodium / day | Days under sodium limit | Sugars / day | Days under sugar limit | Carbs (% kcal) | Left-out foods served | Macro error |
 |---|---|---|---|---|---|---|---|
-| none | 1,145 mg | 100.0% | 50 g | - | 46.0% | 0 | 3.2% |
-| diabetes-friendly | 1,051 mg | 100.0% | 32 g | 100.0% | 40.5% | 0 | 3.2% |
-| low-salt | 530 mg | 100.0% | 57 g | - | 46.2% | 0 | 3.6% |
-| both | 552 mg | 100.0% | 35 g | 100.0% | 40.3% | 0 | 3.2% |
+| none | 1,240 mg | 100.0% | 53 g | - | 46.4% | 0 | 3.9% |
+| diabetes-friendly | 1,090 mg | 100.0% | 32 g | 100.0% | 40.6% | 0 | 3.7% |
+| low-salt | 610 mg | 100.0% | 56 g | - | 46.5% | 0 | 4.1% |
+| both | 534 mg | 100.0% | 33 g | 100.0% | 40.8% | 0 | 3.9% |
 
 Limits: sodium 2,300 mg (1,500 mg low-salt); sugars 10% of calories (diabetes-friendly); carbs <= 40% of calories
 (diabetes-friendly). "Left-out foods served" counts foods the mode should exclude that still reached a plan.
@@ -111,9 +111,9 @@ Limits: sodium 2,300 mg (1,500 mg low-salt); sugars 10% of calories (diabetes-fr
 ## 10. Egyptian dishes (8 random users per setting, 1 week each)
 | Setting | Dish meals / week | Share of meals | Different dishes / week | Macro error |
 |---|---|---|---|---|
-| never | 0.0 (range 0-0) | 0.0% | 0.0 | 4.6% |
-| sometimes | 6.2 (range 3-10) | 22.3% | 5.4 | 4.4% |
-| often | 10.5 (range 5-13) | 37.5% | 8.9 | 4.3% |
+| never | 0.0 (range 0-0) | 0.0% | 0.0 | 5.3% |
+| sometimes | 6.6 (range 5-9) | 23.7% | 5.5 | 5.0% |
+| often | 10.4 (range 8-12) | 37.1% | 8.1 | 5.3% |
 
 ## 11. Held-out sentences (parser on wording it was not built with)
 Not collected yet. Send `data/evaluation/heldout_sentences.xlsx` (make it with `python -m src.heldout --template`) to 5-10 people who did not build the app, put the filled sheet back in `data/evaluation/`, and run this script again.

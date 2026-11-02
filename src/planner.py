@@ -58,6 +58,10 @@ REPEAT_PENALTY = 0.6       # per earlier use of the same food this week
 BASE_REPEAT_PENALTY = 0.25  # per earlier use of the same base food (e.g. "chicken") this week
 NOISE = 0.15               # randomness so two plans are not identical
 PORTION_BASE_KCAL = 2400   # daily target above which maximum portions start to grow
+MAX_PORTION_SCALE = 1.2    # bigger eaters get at most this much more of each food, then denser foods win
+MEAL_GRAMS = {"breakfast": 550, "lunch": 750, "dinner": 750, "snack": 350, "morning_snack": 350}  # a meal most people would finish
+W_BULK = 2.0               # penalty per whole meal's weight above that amount
+SWAP_CALORIE_MARGIN = 0.12  # a suggested swap stays this close to the calories it replaces
 SWAP_LIST_SIZE = 30        # ranked replacements kept for 'Swap a food' (shown 3 at a time)
 SEARCH_WORD_BONUS = 0.3    # typed search: bonus when every typed word is in the food name
 
@@ -96,20 +100,20 @@ MAIN_PROTEIN = Component(
             r"egg|tofu|tempeh|goat)",
     exclude=r"breaded|batter|fried|sausage|frankfurter|bologna|salami|luncheon|bacon|with skin|\bskin\b(?!less)|giblets|neck|"
             r"back\b|wing|smoked|caviar|roe|fermented|" + WEIRD_PROTEIN_RE,
-    grams=(80, 300))
+    grams=(80, 220))
 MAIN_CARB = Component(
     "carb", ("carb", "legume"),
     include=r"^(rice|pasta|spaghetti|macaroni|noodles|potatoes|sweet potato|couscous|bulgur|quinoa|bread|pita|beans|lentils|"
             r"chickpeas|corn|barley|freekeh)\b",
     exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE + r"|baked beans|refried|cereal|salad|scalloped|rice cake|crumbs|with pork|"
                                               r"chow mein|fried|canned|flakes|pudding|fritter|candied|glazed|skin\b|leaves",
-    grams=(60, 350))
+    grams=(60, 280))
 VEGETABLE = Component("vegetable", ("vegetable",), include=COMMON_VEG,
                       exclude=r"pickled|dehydrated|juice|sauce|cream|soup|frozen.*butter|canned.*(cream|sauce)|onion rings|batter|"
                               r"fried|kimchi|sauerkraut|dried",
-                      grams=(80, 250))
+                      grams=(80, 200))
 FRUIT = Component("fruit", ("fruit",), include=COMMON_FRUIT, exclude=r"canned|syrup|pie filling|candied|juice|frozen.*sweetened",
-                  grams=(80, 250))
+                  grams=(80, 200))
 # Cooking fat: lean meals need it to reach the fat target. Lower bound 0 = "no oil needed".
 COOKING_FAT = Component("fat", ("fat",),
                         include=r"^(oil, (olive|sunflower|canola|corn|soybean|peanut|sesame)|butter, (salted|without salt)|"
@@ -123,12 +127,12 @@ SLOTS = {
                   exclude=r"sauce|spread|product|food|powder|dessert|ice cream|pudding|shake|eggnog|substitute|dried|frozen|"
                           r"imitation|goat|sheep|buffalo|chocolate|human|canned|condensed|evaporated|dry|filled|raw|"
                           r"parmesan|romano|grated|pasteurized process|low sodium|substitute",
-                  grams=(50, 300)),
+                  grams=(50, 250)),
         Component("carb", ("carb",),
                   include=r"^(bread|cereals, oats|oats|bagels?|english muffins|pita|tortillas|cereals ready-to-eat|granola|rolls)\b",
                   exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE + r"|french toast|pancake|waffle|hamburger|hot dog|stuffing|"
                                                               r"crumbs|frosted|sugar|chocolate|marshmallow",
-                  grams=(30, 200)),
+                  grams=(30, 150)),
         FRUIT,
     ],
     "lunch": [MAIN_PROTEIN, MAIN_CARB, VEGETABLE, COOKING_FAT],
@@ -140,7 +144,7 @@ SLOTS = {
                           r"peanuts|peanut butter|seeds, (sunflower|pumpkin))",
                   exclude=r"oil|cream|ice cream|pudding|dessert|shake|powder|meal|flour|paste|chocolate|honey|sweetened|"
                           r"goat|sheep|buffalo|human|canned|condensed|evaporated|dry\b|dried|imitation|filled|with vegetables",
-                  grams=(15, 250)),
+                  grams=(15, 200)),
     ],
 }
 SLOTS["morning_snack"] = SLOTS["snack"]
@@ -153,21 +157,21 @@ def _dish(slot, grams):
 
 # Optional sides of a dish (lower bound 0 g = "not needed"): the solver adds them only to reach the targets.
 SIDE_CARB = Component("side_carb", ("carb", "legume"), include=MAIN_CARB.include, exclude=MAIN_CARB.exclude,
-                      grams=(0, 250), top_k=2)
-SIDE_VEG = Component("side_veg", ("vegetable",), include=COMMON_VEG, exclude=VEGETABLE.exclude, grams=(0, 200), top_k=2)
+                      grams=(0, 200), top_k=2)
+SIDE_VEG = Component("side_veg", ("vegetable",), include=COMMON_VEG, exclude=VEGETABLE.exclude, grams=(0, 150), top_k=2)
 SIDE_PROTEIN = Component("side_protein", ("protein", "dairy"),
                          include=r"^(?:chicken|turkey|fish|egg|yogurt, (?:plain|greek)|cheese, cottage)",
                          exclude=MAIN_PROTEIN.exclude + r"|sweetened|vanilla|fruit|chocolate|with vegetables",
-                         grams=(0, 200), top_k=2)
+                         grams=(0, 150), top_k=2)
 SIDE_BREAD = Component("side_bread", ("carb",), include=r"^(?:bread, pita|bread, whole-wheat|bread, white|rolls)",
                        exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE, grams=(0, 120), top_k=2)
-SIDE_FRUIT = Component("side_fruit", ("fruit",), include=COMMON_FRUIT, exclude=FRUIT.exclude, grams=(0, 200), top_k=2)
+SIDE_FRUIT = Component("side_fruit", ("fruit",), include=COMMON_FRUIT, exclude=FRUIT.exclude, grams=(0, 150), top_k=2)
 DISH_TEMPLATES = {
-    "breakfast": [_dish("breakfast", (120, 350)), SIDE_BREAD, SIDE_FRUIT],  # room left for baladi bread
-    "lunch": [_dish("lunch", (150, 650)), SIDE_CARB, SIDE_VEG, SIDE_PROTEIN],
-    "dinner": [_dish("dinner", (150, 650)), SIDE_CARB, SIDE_VEG, SIDE_PROTEIN],
-    "snack": [_dish("snack", (120, 300)), SIDE_FRUIT],
-    "morning_snack": [_dish("morning_snack", (120, 300)), SIDE_FRUIT],
+    "breakfast": [_dish("breakfast", (120, 300)), SIDE_BREAD, SIDE_FRUIT],  # room left for baladi bread
+    "lunch": [_dish("lunch", (150, 450)), SIDE_CARB, SIDE_VEG, SIDE_PROTEIN],
+    "dinner": [_dish("dinner", (150, 450)), SIDE_CARB, SIDE_VEG, SIDE_PROTEIN],
+    "snack": [_dish("snack", (120, 250)), SIDE_FRUIT],
+    "morning_snack": [_dish("morning_snack", (120, 250)), SIDE_FRUIT],
 }
 EGYPTIAN_OPTIONS = {"often": "Often", "sometimes": "Sometimes", "never": "Never"}
 # Added to a dish meal's value; "never" = no dish meals. Dish meals are flexible (optional sides), so without a
@@ -194,6 +198,8 @@ def plan_slots(items):
 DENSE_GRAMS = [
     (("dairy", "protein"), r"^cheese(?!, cottage)", (20, 60)),
     (("fat", "legume"), r"^(nuts|peanuts|peanut butter|seeds)", (15, 40)),
+    (("legume",), r"^(beans|broadbeans|lentils|chickpeas)", (50, 220)),  # filling: a cup of cooked beans is about 180 g
+    (("protein", "legume"), r"^tofu", (80, 200)),
 ]
 
 
@@ -463,6 +469,7 @@ class MealPlanner:
             if caps:  # nutrient caps: how far this meal would push the day over each cap
                 amounts = np.array([arrays[i][5][j] for i, j in enumerate(combo)]).T @ grams / 100
                 value -= W_CAP * sum(max(0.0, a - allowance[n]) / self.caps[n] for n, a in zip(caps, amounts))
+            value -= W_BULK * max(0.0, grams.sum() - MEAL_GRAMS[slot]) / MEAL_GRAMS[slot]  # too much food to finish
             if best is None or value > best[0]:
                 best = (value, combo, grams)
         if best is None:
@@ -470,8 +477,8 @@ class MealPlanner:
         return best[0] + bonus, options, best[1], best[2]
 
     def _set_portion_scale(self, daily):
-        # Bigger eaters get bigger maximum portions (up to +60%) instead of an impossible target.
-        self.portion_scale = float(np.clip(daily["calories"] / PORTION_BASE_KCAL, 1.0, 1.6))
+        # Bigger eaters get bigger maximum portions, within reason. Past that the planner chooses denser foods.
+        self.portion_scale = float(np.clip(daily["calories"] / PORTION_BASE_KCAL, 1.0, MAX_PORTION_SCALE))
 
     def _use(self, items, used_ids, used_bases_week, used_today=None):
         """Count foods as used (for the variety penalties)."""
@@ -603,7 +610,8 @@ def _diverse(df, limit):
 def _sized_item(r, calories, component):
     """MealItem for food row `r` with the grams that give about `calories` kcal (within portion limits)."""
     lo, hi = grams_bounds(r.description, r.meal_role, component)
-    g = float(np.clip(round(calories / max(r.calories, 1) * 100 / 5) * 5, max(lo, 5), hi * 1.6))
+    top = max(np.floor(hi * MAX_PORTION_SCALE / 5) * 5, lo)     # a maximum portion is a multiple of 5 g too
+    g = float(np.clip(round(calories / max(r.calories, 1) * 100 / 5) * 5, max(lo, 5), top))
     f = g / 100.0
     return MealItem(int(r.fdc_id), display_name(r.description), g, round(r.calories * f, 1),
                     round(r.protein_g * f, 1), round(r.carbs_g * f, 1), round(r.fat_g * f, 1))
@@ -619,7 +627,10 @@ def swap_options(fdc_id, slot, calories, allowed_foods, embeddings, exclude_base
     The app shows them a few at a time ("Show more options")."""
     subs = suggest_substitutes(fdc_id, allowed_foods, embeddings, None, slot, exclude_bases)
     _, component = _swap_context(fdc_id, slot, embeddings)
-    return [_sized_item(r, calories, component) for r in _diverse(subs, k).itertuples()]
+    items = [_sized_item(r, calories, component) for r in _diverse(subs, 3 * k).itertuples()]
+    # Portions are limited, so a light food may not reach the calories it replaces: it comes after the foods that do.
+    items.sort(key=lambda i: abs(i.calories - calories) > SWAP_CALORIE_MARGIN * calories)  # keeps the ranking otherwise
+    return items[:k]
 
 
 def servable_foods(foods):

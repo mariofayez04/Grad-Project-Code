@@ -150,3 +150,34 @@ def test_search_swap_finds_typed_food(foods, emb):
     assert all(by_id.loc[i.fdc_id, "meal_role"] in carbs and "wheat" not in str(by_id.loc[i.fdc_id, "allergens"]) for i in items)
     _, low = search_swap("chicken", bread, "lunch", 276.0, allowed, emb)  # not a carb: weak match
     assert low < 0.6
+
+
+# --- realistic portions --------------------------------------------------------------------------------------------
+def test_portions_stay_realistic_for_a_usual_target(foods, emb):
+    from src.calculator import UserProfile
+    from src.planner import generate_week_plan
+    from src.portions import SERVING_LIMITS
+    user = UserProfile("Nour", 30, "female", 62, 165, 2, "maintain")   # under 2,400 kcal: no extra allowance
+    items = generate_week_plan(user, foods, emb, seed=3)[0].to_dataframe()
+    roles = dict(zip(foods["fdc_id"], foods["meal_role"]))
+    over = [(i.name, i.grams) for i in items.itertuples() if i.grams > SERVING_LIMITS[roles[i.fdc_id]]]
+    assert not over, over
+    assert (items["grams"] % 5 == 0).all()
+
+
+def test_a_big_eater_gets_at_most_a_little_more(foods, emb):
+    from src.calculator import UserProfile
+    from src.planner import MAX_PORTION_SCALE, generate_week_plan
+    user = UserProfile("Big", 25, "male", 110, 190, 3, "gain")
+    plan, targets, _ = generate_week_plan(user, foods, emb, seed=3)
+    assert targets.calories > 3000
+    items = plan.to_dataframe()
+    dishes = items["fdc_id"] >= 9000000
+    assert items.loc[~dishes, "grams"].max() <= 280 * MAX_PORTION_SCALE    # the largest limit of a food that isn't a dish
+
+
+def test_rating_sheet_has_real_meals_and_no_scores(foods, emb, tmp_path):
+    from src.portions import meal_rating_sheet
+    sheet = pd.read_excel(meal_rating_sheet(foods, emb, tmp_path / "sheet.xlsx", meals=5), sheet_name="Meals")
+    assert len(sheet) == 5 and sheet["Foods"].str.contains(" g").all()
+    assert sheet["Would a person eat this? (1-5)"].isna().all()

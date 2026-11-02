@@ -859,3 +859,27 @@ Why: free text blocked only 68.8% of allergy items on sentences kept apart (17.1
 - **Measured** (`python -m src.testers --checklist`, `data/evaluation/checklist_results.md`): 15 people who only ticked boxes, 1 week each: 0 of 1,239 items contained a ticked allergen, 1.9% calorie error. With the matching box ticked, set 3 goes from 22 / 32 to 32 / 32, which is true by design and assumes people tick correctly. The kiwi allergy in set 3 is outside the list and still depends on the text.
 - Report screenshots retaken with a neutral test account.
 - Tests: 270 -> 281.
+
+### 17.15 Realistic portions and the pilot kit (2026-11-02)
+
+Why: plans hit their numbers with meals nobody would eat (a lunch with 305 g of tofu and 355 g of French beans; 410 g of lentils).
+
+- **Limits (`src/planner.py`):** lower maximum portions per part of a meal (protein 220 g, carbohydrate 280 g, beans and lentils 220 g, vegetables 200 g, dishes 450 g). Bigger eaters get at most +20% (was +60%), then denser foods win. A meal over `MEAL_GRAMS` loses value (`W_BULK`).
+- **Swaps:** a food that can't reach the calories it replaces within 12% now comes after the foods that can.
+- **Measured (`python -m src.portions`), 30 users x 7 days, before -> after:**
+
+| Measure | Before | After |
+|---|---|---|
+| Foods over a generous serving | 18.6% | 12.9% (2.5% for targets under 2,800 kcal) |
+| Largest single food | 560 g | 335 g |
+| Main meals over 800 g | 21.7% | 11.9% |
+| Heaviest main meal | 1,480 g | 1,160 g |
+| Calorie error | 2.3% | 3.2% |
+| Days within 10% of calories | 98.1% | 95.7% |
+| Protein error | 4.3% | 5.6% |
+
+  The serving limits are a judgment, not official values. Whether foods go together isn't measured yet, and people with targets of 2,800 kcal or more still get many large portions (40.1%).
+- All evaluation results were regenerated, and the report's numbers updated.
+- **Pilot kit:** `data/evaluation/pilot_message.md` (message for friends, English and Arabic) and `meal_rating_sheet.xlsx` (20 real planned meals for a qualified person to rate, `python -m src.portions --sheet`). Both are unused so far: the report must not claim any real-user or expert result until they come back.
+- The fasting, Arabic input, budget, "why this meal", leftovers, family and photo features were suggested and declined by the user, so none was built.
+- Tests: 281 -> 284.

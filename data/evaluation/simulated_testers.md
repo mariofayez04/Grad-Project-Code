@@ -13,30 +13,30 @@ Share of meals eaten:
 
 | Mode | Week 1 | Week 2 | Week 3 | Week 4 |
 |---|---|---|---|---|
-| no learning | 78.4% | 80.6% | 77.3% | 79.9% |
-| with learning | 78.4% | 88.6% | 90.6% | 87.4% |
+| no learning | 80.7% | 79.2% | 78.9% | 75.9% |
+| with learning | 80.7% | 88.4% | 88.6% | 87.4% |
 
 Disliked foods served per week (before any swap):
 
 | Mode | Week 1 | Week 2 | Week 3 | Week 4 |
 |---|---|---|---|---|
-| no learning | 5.8 | 5.4 | 5.6 | 5.7 |
-| with learning | 5.8 | 1.4 | 0.9 | 0.8 |
+| no learning | 5.6 | 5.9 | 5.7 | 6.1 |
+| with learning | 5.6 | 1.3 | 1.1 | 0.7 |
 
 ## 2. Safety
 | Wording | Testers | Allergy understood | Food items checked | Items with a stated allergen | Items breaking a diet rule |
 |---|---|---|---|---|---|
-| clean | 20 | 100.0% | 12932 | 0 | 0 |
-| messy | 4 | 100.0% | 2676 | 0 | 0 |
+| clean | 20 | 100.0% | 13198 | 0 | 0 |
+| messy | 4 | 100.0% | 2729 | 0 | 0 |
 
 Messy-wording testers (4): allergy understood by 4; stated allergen served in 0 food items over both modes.
 
 ## 3. Accuracy and speed (with learning)
-- Calories 1.9%, protein 3.3%, carbs 2.5%, fat 3.7% mean error; 100.0% of days within 10% of the calorie target.
-- Plan generation: mean 3.04 s, max 4.25 s.
+- Calories 2.3%, protein 3.9%, carbs 2.6%, fat 4.2% mean error; 99.7% of days within 10% of the calorie target.
+- Plan generation: mean 3.04 s, max 4.19 s.
 
 ## 4. Use of the features (both modes)
-- Swaps: 148. New meal requests: 79, new version kept: 46.
+- Swaps: 152. New meal requests: 95, new version kept: 59.
 - Sign-in with the right PIN worked for 100.0% of accounts; a wrong PIN was refused for 100.0%.
 - Testers that crashed: 0
 
