@@ -48,6 +48,9 @@ DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sun
 MACROS = ["calories", "protein_g", "carbs_g", "fat_g"]
 
 W_FIT, W_TASTE, W_PREF = 1.0, 1.0, 1.0
+BEAN_DISH_RE = re.compile(r"(ful medames|bessara|taameya|koshari|shorbet ads|fasolia|halabessa)", re.I)
+HAS_STARCH_RE = re.compile(r"(koshari|molokhia with rice|mahshi|fattah|bamya with rice|sayadiya|fasolia with rice|ferakh bel roz|hawawshi|torly)", re.I)
+HAS_MEAT_RE = re.compile(r"(molokhia with rice|fattah|bamya|kofta|hawawshi|sayadiya|fasolia|mesaqaa|torly|ferakh)", re.I)
 W_NUT = 1.0                # weight of the nutrient score (Feature #10)
 W_CAP = 20.0               # penalty per "cap" of excess when a meal would push the day over a nutrient cap
 CAP_MARGIN = 0.95          # plan to 95% of each cap: portions are rounded to 5 g afterwards
@@ -58,7 +61,8 @@ REPEAT_PENALTY = 0.6       # per earlier use of the same food this week
 BASE_REPEAT_PENALTY = 0.25  # per earlier use of the same base food (e.g. "chicken") this week
 NOISE = 0.15               # randomness so two plans are not identical
 PORTION_BASE_KCAL = 2400   # daily target above which maximum portions start to grow
-MAX_PORTION_SCALE = 1.2    # bigger eaters get at most this much more of each food, then denser foods win
+MAX_PORTION_SCALE = 1.35   # bigger eaters get at most this much more of each food, then denser foods win
+MIN_SIDE_GRAMS = 30        # an optional side smaller than this isn't worth serving (cooking oil is measured separately)
 MEAL_GRAMS = {"breakfast": 550, "lunch": 750, "dinner": 750, "snack": 350, "morning_snack": 350}  # a meal most people would finish
 W_BULK = 2.0               # penalty per whole meal's weight above that amount
 SWAP_CALORIE_MARGIN = 0.12  # a suggested swap stays this close to the calories it replaces
@@ -80,6 +84,22 @@ COMMON_FRUIT = (r"^(apples?|bananas?|oranges?|grapes?|strawberries|watermelon|me
 COMMON_VEG = (r"^(broccoli|carrots?|spinach|squash, summer|beans, snap|peas, green|tomatoes|cucumber|lettuce|cabbage|cauliflower|"
               r"peppers, sweet|eggplant|okra|mixed vegetables|vegetables, mixed|jute, potherb|asparagus|beets|kale|artichokes?|"
               r"brussels sprouts|mushrooms|celery|zucchini|green beans|peas and carrots|leeks|chard|collards)\b")
+# Raw is fine for salad vegetables, not for Brussels sprouts or collards.
+RAW_NOT_SALAD = r"^(?!.*(lettuce|cucumber|tomato|cabbage|carrot|peppers|onion|radish|spinach|celery)).*\braw\b"
+# Foods people here eat every week. Others stay possible, for those who ask for them or have few options, but rank lower.
+EVERYDAY = {
+    "protein": r"^(chicken|turkey|beef|lamb|veal|egg\b|tuna|crustaceans, shrimp|fish, (tilapia|tuna|cod|mackerel|sardine|sea bass|bass|"
+               r"trout|mullet|haddock|salmon(?!.*canned)))",
+    "carb": r"^(rice, (white|brown)|pasta|spaghetti|macaroni|potatoes|sweet potato|bulgur|couscous|corn\b|freekeh|bread, (white|whole-wheat|pita)|"
+            r"oats|cereals, oats|rolls, dinner)",
+    "legume": r"^(lentils|chickpeas|broadbeans|beans, (white|fava|kidney|navy)|hummus|peanut butter|peanuts)",
+    "vegetable": r"^(tomatoes|cucumber|squash, summer|zucchini|eggplant|okra|jute|spinach|carrots|peas|beans, snap|green beans|peppers, sweet|"
+                 r"cabbage(?!, (chinese|napa))|cauliflower|lettuce|onions|beets|mushrooms|broccoli(?! raab|, chinese)|mixed vegetables|vegetables, mixed)",
+    "fruit": r"^(apples?|bananas?|oranges?|tangerines?|clementines?|grapes?|guavas?|mangos?|watermelon|melons|peach|pomegranates?|strawberries|"
+             r"figs?|dates?|apricots?|pears?|plums?)",
+}
+W_UNFAMILIAR = 1.5         # how much lower a food ranks when it isn't an everyday food
+
 WEIRD_PROTEIN_RE = (r"New Zealand|imported|headcheese|souse|scrapple|loaf|pate|spread|roll\b|canned.*(pork|beef)|meatless|"
                     r"cured|water added|unheated|dried|powder|\bmixture\b|substitute|whole, raw|ground, raw")
 
@@ -97,7 +117,7 @@ class Component:
 MAIN_PROTEIN = Component(
     "protein", ("protein",),
     include=r"^(chicken|turkey|beef|lamb|veal|pork|fish|salmon|tuna|tilapia|cod|sardines?|mackerel|trout|crustaceans|mollusks|"
-            r"egg|tofu|tempeh|goat)",
+            r"egg\b|tofu\b(?! yogurt)|tempeh|goat)",
     exclude=r"breaded|batter|fried|sausage|frankfurter|bologna|salami|luncheon|bacon|with skin|\bskin\b(?!less)|giblets|neck|"
             r"back\b|wing|smoked|caviar|roe|fermented|" + WEIRD_PROTEIN_RE,
     grams=(80, 220))
@@ -106,19 +126,20 @@ MAIN_CARB = Component(
     include=r"^(rice|pasta|spaghetti|macaroni|noodles|potatoes|sweet potato|couscous|bulgur|quinoa|bread|pita|beans|lentils|"
             r"chickpeas|corn|barley|freekeh)\b",
     exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE + r"|baked beans|refried|cereal|salad|scalloped|rice cake|crumbs|with pork|"
-                                              r"chow mein|fried|canned|flakes|pudding|fritter|candied|glazed|skin\b|leaves",
+                                              r"chow mein|fried|canned|flakes|pudding|fritter|candied|glazed|skin\b|leaves|"
+                                              r"hulled|as purchased|\bdry\b",
     grams=(60, 280))
 VEGETABLE = Component("vegetable", ("vegetable",), include=COMMON_VEG,
                       exclude=r"pickled|dehydrated|juice|sauce|cream|soup|frozen.*butter|canned.*(cream|sauce)|onion rings|batter|"
-                              r"fried|kimchi|sauerkraut|dried",
+                              r"fried|kimchi|sauerkraut|dried|stalks|" + RAW_NOT_SALAD,
                       grams=(80, 200))
-FRUIT = Component("fruit", ("fruit",), include=COMMON_FRUIT, exclude=r"canned|syrup|pie filling|candied|juice|frozen.*sweetened",
+FRUIT = Component("fruit", ("fruit",), include=COMMON_FRUIT, exclude=r"canned|syrup|pie filling|candied|juice|sweetened|peel|puree|sauce|stewed|muscadine",
                   grams=(80, 200))
 # Cooking fat: lean meals need it to reach the fat target. Lower bound 0 = "no oil needed".
 COOKING_FAT = Component("fat", ("fat",),
                         include=r"^(oil, (olive|sunflower|canola|corn|soybean|peanut|sesame)|butter, (salted|without salt)|"
                                 r"butter oil|ghee)",
-                        exclude=r"industrial|hydrogenated|whipped|light|blend|high oleic", grams=(0, 30), top_k=2)
+                        exclude=r"industrial|hydrogenated|whipped|light|blend|high oleic|lecithin", grams=(0, 30), top_k=2)
 
 SLOTS = {
     "breakfast": [
@@ -131,7 +152,7 @@ SLOTS = {
         Component("carb", ("carb",),
                   include=r"^(bread|cereals, oats|oats|bagels?|english muffins|pita|tortillas|cereals ready-to-eat|granola|rolls)\b",
                   exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE + r"|french toast|pancake|waffle|hamburger|hot dog|stuffing|"
-                                                              r"crumbs|frosted|sugar|chocolate|marshmallow",
+                                                              r"crumbs|frosted|sugar|chocolate|marshmallow|hulled",
                   grams=(30, 150)),
         FRUIT,
     ],
@@ -156,15 +177,15 @@ def _dish(slot, grams):
 
 
 # Optional sides of a dish (lower bound 0 g = "not needed"): the solver adds them only to reach the targets.
-SIDE_CARB = Component("side_carb", ("carb", "legume"), include=MAIN_CARB.include, exclude=MAIN_CARB.exclude,
+SIDE_CARB = Component("side_carb", ("carb",), include=r"^(rice|bread|pita|potatoes|bulgur)\b", exclude=MAIN_CARB.exclude,
                       grams=(0, 200), top_k=2)
 SIDE_VEG = Component("side_veg", ("vegetable",), include=COMMON_VEG, exclude=VEGETABLE.exclude, grams=(0, 150), top_k=2)
 SIDE_PROTEIN = Component("side_protein", ("protein", "dairy"),
-                         include=r"^(?:chicken|turkey|fish|egg|yogurt, (?:plain|greek)|cheese, cottage)",
+                         include=r"^(?:chicken|turkey|fish|egg\b|yogurt, (?:plain|greek)|cheese, cottage)",
                          exclude=MAIN_PROTEIN.exclude + r"|sweetened|vanilla|fruit|chocolate|with vegetables",
                          grams=(0, 150), top_k=2)
 SIDE_BREAD = Component("side_bread", ("carb",), include=r"^(?:bread, pita|bread, whole-wheat|bread, white|rolls)",
-                       exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE, grams=(0, 120), top_k=2)
+                       exclude=DESSERT_RE + "|" + NOT_A_SIDE_RE + "|hamburger|hot dog", grams=(0, 120), top_k=2)
 SIDE_FRUIT = Component("side_fruit", ("fruit",), include=COMMON_FRUIT, exclude=FRUIT.exclude, grams=(0, 150), top_k=2)
 DISH_TEMPLATES = {
     "breakfast": [_dish("breakfast", (120, 300)), SIDE_BREAD, SIDE_FRUIT],  # room left for baladi bread
@@ -309,6 +330,30 @@ def grams_bounds(description, role, component):
     return component.grams
 
 
+def is_everyday(description, role):
+    """Everyday food for its role? Roles with no list (dishes, dairy, oils) always count."""
+    pattern = EVERYDAY.get(role)
+    return pattern is None or re.search(pattern, description, re.I) is not None
+
+
+def legume_like(description, role):
+    """Beans, lentils, soy and the dishes built on them: filling, so one per meal is enough."""
+    return bool(role == "legume" or re.match(r"(tofu|tempeh)\b", description, re.I)
+                or (role == "dish" and BEAN_DISH_RE.match(description)))
+
+
+def combo_allowed(foods, slot):
+    """Do these foods go together? foods: [(description, role)]. Fixed rules for what looks wrong on one plate."""
+    if sum(legume_like(d, r) for d, r in foods) > 1:
+        return False
+    if slot == "breakfast":
+        roles = {r for _, r in foods}
+        cereal = any(re.match(r"(cereals|oats|granola)", d, re.I) for d, _ in foods)
+        if cereal and not roles & {"dairy"}:  # oats and granola go with milk or yogurt, not with beans or eggs
+            return False
+    return True
+
+
 def component_foods(df, component):
     """Foods that can fill a meal component: right meal role and passing its include / exclude rules."""
     df = df[df["meal_role"].isin(component.roles)]
@@ -390,7 +435,8 @@ class MealPlanner:
         bounds = [grams_bounds(d, r, component) for d, r in zip(df["description"], df["meal_role"])]
         df["_lo"] = [b[0] for b in bounds]
         df["_hi"] = [b[1] for b in bounds]
-        df["_score"] = W_FIT * role_fit(df, component) + W_TASTE * df["taste"] + W_PREF * df["pref_score"] - df["penalty"]
+        df["_score"] = (W_FIT * role_fit(df, component) + W_TASTE * df["taste"] + W_PREF * df["pref_score"] - df["penalty"]
+                        - W_UNFAMILIAR * np.array([not is_everyday(d, r) for d, r in zip(df["description"], df["meal_role"])], dtype=float))
         return df
 
     def _candidates(self, slot, component, used_ids, used_bases_week, used_bases_today, exclude_ids=frozenset(),
@@ -455,16 +501,29 @@ class MealPlanner:
             return None
 
         arrays = [(o[MACROS].to_numpy(float), o["_lo"].to_numpy(float), o["_hi"].to_numpy(float) * self.portion_scale,
-                   o["_final"].to_numpy(float), o["base_name"].to_numpy(), o[caps].to_numpy(float)) for o in options]
+                   o["_final"].to_numpy(float), o["base_name"].to_numpy(), o[caps].to_numpy(float),
+                   o["description"].to_numpy(), o["meal_role"].to_numpy()) for o in options]
         best = None
         for combo in itertools.product(*[range(len(o)) for o in options]):
             bases = [arrays[i][4][j] for i, j in enumerate(combo)]
             if len(set(bases)) < len(bases):
                 continue
+            plate = [(arrays[i][6][j], arrays[i][7][j]) for i, j in enumerate(combo)]
+            if not combo_allowed(plate, slot):
+                continue
             per100 = np.array([arrays[i][0][j] for i, j in enumerate(combo)])
             lo = np.array([arrays[i][1][j] for i, j in enumerate(combo)])
             hi = np.array([arrays[i][2][j] for i, j in enumerate(combo)])
+            for i, (description, role) in enumerate(plate):  # a dish with its own rice or meat needs no more of it
+                if options[0]["meal_role"].iloc[0] == "dish" and role != "dish":
+                    dish = plate[0][0]
+                    if (HAS_STARCH_RE.match(dish) and role == "carb") or (HAS_MEAT_RE.match(dish) and role == "protein"):
+                        hi[i] = lo[i] = 0.0
             grams, error = solve_grams(per100, lo, hi, target)
+            tiny = [i for i, (_, role) in enumerate(plate) if role != "fat" and lo[i] == 0 and 0 < grams[i] < MIN_SIDE_GRAMS]
+            if tiny:  # 5 g of dried figs isn't a side: plan the meal without it
+                hi[tiny] = 0.0
+                grams, error = solve_grams(per100, lo, hi, target)
             value = np.mean([arrays[i][3][j] for i, j in enumerate(combo)]) - W_ERROR * error
             if caps:  # nutrient caps: how far this meal would push the day over each cap
                 amounts = np.array([arrays[i][5][j] for i, j in enumerate(combo)]).T @ grams / 100

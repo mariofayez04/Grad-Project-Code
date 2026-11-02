@@ -1,7 +1,7 @@
 # Allergy checklist
 
 ## Plans for people who tick and type nothing (15 people, 1 week each)
-- Food items served: 1258. Items containing a ticked allergen: **0**.
+- Food items served: 1262. Items containing a ticked allergen: **0**.
 - Mean calorie error: 2.1%.
 
 ## Sentence sets, if the person also ticked the matching box

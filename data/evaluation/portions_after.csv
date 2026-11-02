@@ -1,11 +1,20 @@
-Items over a generous serving,12.9%
-"Largest single food (not a dish), g",335
-"95th percentile of a food's portion, g",260
-Main meals over 800 g,11.9%
-"Heaviest main meal, g",1160
-Calorie error,3.2%
-Protein error,5.6%
-Carbohydrate error,3.7%
-Fat error,4.9%
-Days within 10% of calories,95.7%
-Different foods per week,81
+Items over a generous serving,13.9%
+"Largest single food (not a dish), g",375
+"95th percentile of a food's portion, g",295
+Main meals over 800 g,18.1%
+"Heaviest main meal, g",1275
+Calorie error,3.1%
+Protein error,5.2%
+Carbohydrate error,3.9%
+Fat error,4.8%
+Days within 10% of calories,94.3%
+Different foods per week,77
+Everyday foods,98.6%
+Everyday protein,94.1%
+Everyday carb,99.8%
+Everyday legume,100.0%
+Everyday vegetable,100.0%
+Everyday fruit,100.0%
+Items nobody should be served,0
+"Meals with two bean or soy foods, or cereal without milk",0 of 840
+Dishes with their own starch plus another carbohydrate,0

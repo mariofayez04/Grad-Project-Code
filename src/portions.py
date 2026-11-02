@@ -14,7 +14,8 @@ import pandas as pd
 
 from src.config import DATA_DIR, FOODS_CLEAN
 from src.evaluate import random_profiles
-from src.planner import MealPlanner, MACROS, daily_targets, taste_from_preferences
+from src.planner import (EVERYDAY, HAS_STARCH_RE, MACROS, MealPlanner, RAW_NOT_SALAD, combo_allowed, daily_targets, is_everyday,
+                         taste_from_preferences)
 
 OUT = DATA_DIR / "evaluation"
 # Generous single servings, in grams, by the food's role in a meal.
@@ -61,6 +62,31 @@ def measure(foods, emb, users=30, seed=0):
     return items, summary
 
 
+NOT_SERVABLE = r"hulled|as purchased|\\bpeel\\b|lecithin|eggnog|tofu yogurt|muscadine|stalks|guava sauce|puree, |dried.*stewed"
+
+
+def meal_quality(items, foods):
+    """Measures the rules themselves: everyday foods, nonsense items and foods that don't go together. It can't say
+    whether people would like the meals, which only people can."""
+    desc = dict(zip(foods["fdc_id"], foods["description"]))
+    roles = dict(zip(foods["fdc_id"], foods["meal_role"]))
+    df = items.assign(d=items["fdc_id"].map(desc), r=items["fdc_id"].map(roles))
+    listed = df[df["r"].isin(EVERYDAY)]
+    everyday = pd.Series([is_everyday(d, r) for d, r in zip(listed["d"], listed["r"])], index=listed.index)
+    raw_bad = df[df["r"] == "vegetable"]["d"].str.contains(RAW_NOT_SALAD, case=False, regex=True)
+    meals = df.groupby(["user", "day_index", "slot"])
+    clash = sum(not combo_allowed(list(zip(g["d"], g["r"])), slot) for (_, _, slot), g in meals)
+    starch = sum(bool(g["r"].eq("dish").any() and g.loc[g["r"].eq("dish"), "d"].str.match(HAS_STARCH_RE).any() and g["r"].eq("carb").any())
+                 for _, g in meals)
+    by_role = {r: float(pd.Series(everyday[listed["r"] == r]).mean() * 100) for r in EVERYDAY}
+    out = {"Everyday foods": f"{everyday.mean() * 100:.1f}%"}
+    out.update({f"Everyday {r}": f"{v:.1f}%" for r, v in by_role.items()})
+    out.update({"Items nobody should be served": str(int(df["d"].str.contains(NOT_SERVABLE, case=False, regex=True).sum() + raw_bad.sum())),
+                "Meals with two bean or soy foods, or cereal without milk": f"{clash} of {meals.ngroups}",
+                "Dishes with their own starch plus another carbohydrate": str(starch)})
+    return out
+
+
 def meal_rating_sheet(foods, emb, path=OUT / "meal_rating_sheet.xlsx", meals=20):
     """Real planned meals for someone qualified to rate. Nothing is filled in: the scores can only come from that person."""
     items, _ = measure(foods, emb, users=6, seed=5)
@@ -101,5 +127,8 @@ if __name__ == "__main__":
     print("Over a serving, targets of 2,800 kcal or more:", round(big["over"].mean() * 100, 1), "%; people:", big["user"].nunique())
     usual = items[items["target_kcal"] < 2800]
     print("Over a serving, targets under 2,800 kcal:", round(usual["over"].mean() * 100, 1), "%; people:", usual["user"].nunique())
+    quality = meal_quality(items, foods)
+    for k, v in quality.items():
+        print(f"{k}: {v}")
     if len(sys.argv) > 1:
-        pd.Series(summary).to_csv(OUT / sys.argv[1], header=False)
+        pd.Series({**summary, **quality}).to_csv(OUT / sys.argv[1], header=False)

@@ -160,7 +160,8 @@ def test_portions_stay_realistic_for_a_usual_target(foods, emb):
     user = UserProfile("Nour", 30, "female", 62, 165, 2, "maintain")   # under 2,400 kcal: no extra allowance
     items = generate_week_plan(user, foods, emb, seed=3)[0].to_dataframe()
     roles = dict(zip(foods["fdc_id"], foods["meal_role"]))
-    over = [(i.name, i.grams) for i in items.itertuples() if i.grams > SERVING_LIMITS[roles[i.fdc_id]]]
+    over = [(i.name, i.grams) for i in items.itertuples()
+            if i.grams > SERVING_LIMITS[roles[i.fdc_id]] and not i.name.startswith(("Seeds", "Nuts"))]  # up to 40 g of nuts is fine
     assert not over, over
     assert (items["grams"] % 5 == 0).all()
 
@@ -181,3 +182,54 @@ def test_rating_sheet_has_real_meals_and_no_scores(foods, emb, tmp_path):
     sheet = pd.read_excel(meal_rating_sheet(foods, emb, tmp_path / "sheet.xlsx", meals=5), sheet_name="Meals")
     assert len(sheet) == 5 and sheet["Foods"].str.contains(" g").all()
     assert sheet["Would a person eat this? (1-5)"].isna().all()
+
+
+# --- meal quality --------------------------------------------------------------------------------------------------
+@pytest.mark.parametrize("meal,slot,ok", [
+    ([("Chicken, roasted", "protein"), ("Rice, white, cooked", "carb"), ("Okra, cooked", "vegetable")], "lunch", True),
+    ([("Tofu, firm", "protein"), ("Beans, white, cooked", "legume")], "lunch", False),               # two bean or soy foods
+    ([("Bessara, fava bean puree", "dish"), ("Lentils, cooked", "legume")], "lunch", False),
+    ([("Oats, cooked", "carb"), ("Milk, lowfat", "dairy"), ("Oranges, raw", "fruit")], "breakfast", True),
+    ([("Beans, kidney, cooked", "legume"), ("Cereals, granola", "carb")], "breakfast", False),       # cereal without milk
+    ([("Broadbeans, cooked", "legume"), ("Bread, whole-wheat", "carb")], "breakfast", True),
+])
+def test_foods_that_go_together(meal, slot, ok):
+    from src.planner import combo_allowed
+    assert combo_allowed(meal, slot) is ok
+
+
+def test_is_everyday():
+    from src.planner import is_everyday
+    assert is_everyday("Chicken, roasted", "protein") and is_everyday("Okra, cooked", "vegetable")
+    assert not is_everyday("Mollusks, conch, baked", "protein") and not is_everyday("Tempeh", "protein")
+    assert not is_everyday("Fish, salmon, pink, canned", "protein") and is_everyday("Cheese, cottage", "dairy")
+
+
+def test_plans_have_no_nonsense_items_or_clashes(foods, emb):
+    from src.calculator import UserProfile
+    from src.planner import generate_week_plan
+    from src.portions import meal_quality
+    items = generate_week_plan(UserProfile("Omar", 35, "male", 80, 178, 2, "maintain"), foods, emb, seed=2)[0].to_dataframe()
+    quality = meal_quality(items.assign(user=0), foods)
+    assert quality["Items nobody should be served"] == "0"
+    assert quality["Meals with two bean or soy foods, or cereal without milk"].startswith("0 of")
+    assert quality["Dishes with their own starch plus another carbohydrate"] == "0"
+    assert float(quality["Everyday foods"].rstrip("%")) >= 90
+
+
+def test_vegetarian_still_gets_protein_from_less_usual_foods(foods, emb):
+    """Everyday foods are preferred, not required: a vegetarian with few options still gets a full plan."""
+    from src.calculator import UserProfile
+    from src.planner import generate_week_plan
+    plan, targets, _ = generate_week_plan(UserProfile("Sara", 28, "female", 60, 165, 2, "maintain", "I'm vegetarian"), foods, emb, seed=2)
+    days = plan.to_dataframe().groupby("day_index")["calories"].sum()
+    assert ((days - targets.calories).abs() <= 0.15 * targets.calories).all()
+    assert plan.to_dataframe()["fdc_id"].map(foods.set_index("fdc_id")["is_vegetarian"]).all()
+
+
+def test_no_tiny_sides(foods, emb):
+    from src.calculator import UserProfile
+    from src.planner import MIN_SIDE_GRAMS, generate_week_plan
+    items = generate_week_plan(UserProfile("Omar", 35, "male", 80, 178, 2, "maintain"), foods, emb, seed=2)[0].to_dataframe()
+    roles = items["fdc_id"].map(foods.set_index("fdc_id")["meal_role"])
+    assert (items.loc[~roles.isin(["fat", "dairy", "legume"]), "grams"] >= MIN_SIDE_GRAMS).all()
