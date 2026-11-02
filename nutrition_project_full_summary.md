@@ -838,3 +838,13 @@ Set 3 is the fair number; sets 1 and 2 are optimistic. Of set 3's 10 misses, the
 Known limits: likes and dislikes in indirect wording are often missed ("Salmon is amazing"); "I'd prefer to skip the mushrooms" still reads as a like.
 
 Tests: 238 -> 267. Report files are in `report/` (`build_report.py`, `content.py`, `make_diagrams.py`, `make_charts.py`, `make_code_figures.py`).
+
+### 17.13 Consent and deleting an account (2026-11-02)
+
+Why: Egypt's Law No. 151 of 2020 treats health data as sensitive, and summaries of it describe explicit consent as the general rule. This comes from law-firm summaries, not a legal review.
+
+- **Sign-up:** a required box. It says what is stored, that data may be kept outside Egypt, and that the account can be deleted. Nothing is saved until it's ticked.
+- **Accounts from before:** asked at their next sign-in. They can agree, sign out or delete; nothing else opens until they answer. (`users.consented_at`)
+- **Delete my account:** at the bottom of the Profile page. It asks for the PIN and a confirmation, then removes the profile, plans, foods, swaps, choices, weights and ratings (`db.delete_user`, `ON DELETE CASCADE`). Wrong PINs count towards the lock.
+- **Hosted database upgrade:** `init_db` didn't add new columns on Postgres, so this column could have crashed the live site. It now runs `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`. Tested on a throwaway Postgres built from the schema of the deployed version: the column is added, the user is kept, and starting twice is fine.
+- Tests: 267 -> 270. A database provider may keep backups for a while after a delete; this was not checked for Neon.

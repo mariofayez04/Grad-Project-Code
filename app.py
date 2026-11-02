@@ -394,6 +394,10 @@ def finish_week(plan, items, foods, emb):
     db.save_plan(user["id"], new_plan, targets, prefs, seed, taste)
 
 
+CONSENT_TEXT = ("I agree that NutriPlan may store and use my details to plan my meals, including my body measurements, "
+                "allergies and health focus. They may be kept on servers outside Egypt. I can delete my account at any time.")
+
+
 # --- signing in and the profile form ------------------------------------------------------------------------
 def set_user(user_id):
     """Remember the signed-in user in the session and in the URL (?user=ID&t=signature), so a page reload
@@ -528,6 +532,7 @@ def profile_form(user, targets=None):
                                 f'{targets["calories"]:,}<small>kcal</small></div><div class="tile-note">Protein '
                                 f'{targets["protein_g"]} g · Carbs {targets["carbs_g"]} g · Fat {targets["fat_g"]} g</div>',
                                 unsafe_allow_html=True)
+                consent = user is not None or st.checkbox(CONSENT_TEXT, key="pf_consent", width="stretch")
                 label = "Generate my weekly plan" if user else "Create profile and weekly plan"
                 submitted = st.form_submit_button(label, type="primary", width="stretch", icon=":material/eco:")
                 st.caption("Builds a fresh plan for this week. What earlier weeks taught it is kept." if user else
@@ -539,6 +544,9 @@ def profile_form(user, targets=None):
         st.error("Please enter your name.")
         return None
     if user is None:
+        if not consent:
+            st.error("Please tick the box to agree, so that your details can be saved.")
+            return None
         if pin != again:
             st.error("The two PINs don't match.")
             return None
@@ -552,8 +560,47 @@ def profile_form(user, targets=None):
     return profile, (pin if user is None else None)
 
 
+def consent_page(user):
+    """Accounts made before the consent box existed: agree, sign out, or delete everything."""
+    st.markdown(BRAND, unsafe_allow_html=True)
+    with st.container(key="card_consent"):
+        st.markdown(f'<div class="card-title">One question before you continue, {html.escape(user["name"])}</div>',
+                    unsafe_allow_html=True)
+        st.markdown(CONSENT_TEXT)
+        st.button("I agree and continue", type="primary", key="consent_yes", on_click=db.record_consent, args=(user["id"],),
+                  width="stretch")
+        st.button("Sign out", key="consent_signout", on_click=set_user, args=(None,), width="stretch")
+        delete_account(user)
+
+
+def delete_account(user):
+    """Permanently remove the account. Asks for the PIN, so nobody else at an open browser can do it."""
+    with st.expander("Delete my account"):
+        st.markdown("This permanently removes your profile, plans, meals, weight entries and ratings. It can't be undone.")
+        with st.form("delete_account", border=False):
+            pin = st.text_input("Your PIN", type="password", max_chars=8, key="delete_pin")
+            sure = st.checkbox("Yes, delete everything", key="delete_sure")
+            ok = st.form_submit_button("Delete my account", width="stretch", icon=":material/delete:")
+    if ok:
+        if not sure:
+            st.error("Please tick the box to confirm.")
+            return
+        result, _ = db.verify_pin(user["name"], pin)
+        if result == "ok":
+            db.delete_user(user["id"])
+            set_user(None)
+            st.session_state.account_deleted = True
+            st.rerun()
+        elif result == "locked":
+            st.error(f"Too many wrong PINs. Try again in {db.LOCK_MINUTES} minutes.")
+        else:
+            st.error("That PIN isn't right. Nothing was deleted.")
+
+
 def signed_out_page():
     """Welcome: what the app does on the left, Sign in / New user on the right. Returns (profile, pin) or None."""
+    if st.session_state.pop("account_deleted", False):
+        st.success("Your account and all its data have been deleted.")
     brand, switch = st.columns([3, 1], vertical_alignment="center")
     brand.markdown(BRAND, unsafe_allow_html=True)
     with switch.container(horizontal=True, horizontal_alignment="right"):
@@ -1336,12 +1383,18 @@ def main():
         st.markdown(FOOTER, unsafe_allow_html=True)
         return
 
+    if not user.get("consented_at"):
+        consent_page(user)
+        st.markdown(FOOTER, unsafe_allow_html=True)
+        return
+
     plan = db.latest_plan(user_id)
     page = top_bar(user, plan)
     if page == "Profile":
         page_header("Your profile", "Your details", "Change anything here and generate a new plan. Your name stays the same.")
         with st.container(key="page_profile"):
             submitted = profile_form(user, plan["targets"] if plan else None)
+            delete_account(user)
         if submitted is not None:
             save_profile(submitted, foods, emb)
     elif plan is None:

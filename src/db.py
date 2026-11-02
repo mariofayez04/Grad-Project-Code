@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS users (
     pin_salt TEXT,
     failed_logins INTEGER NOT NULL DEFAULT 0,
     locked_until TEXT,
+    consented_at TEXT,           -- when the person agreed to their data being stored; NULL = must be asked
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -123,7 +124,7 @@ PROFILE_FIELDS = ["name", "age", "sex", "weight_kg", "height_cm", "activity_leve
 # Columns added after the first release; init_db adds them to an existing database.
 MIGRATIONS = {"users": {"meals_per_day": "INTEGER NOT NULL DEFAULT 4", "health_modes": "TEXT NOT NULL DEFAULT ''",
                         "egyptian_dishes": "TEXT NOT NULL DEFAULT 'sometimes'", "pin_hash": "TEXT", "pin_salt": "TEXT", "failed_logins": "INTEGER NOT NULL DEFAULT 0",
-                        "locked_until": "TEXT"}}
+                        "locked_until": "TEXT", "consented_at": "TEXT"}}
 
 PIN_RE = re.compile(r"^\d{4,8}$")
 PIN_ITERATIONS = 200_000   # PBKDF2 rounds: slow to brute-force a stolen database
@@ -205,6 +206,9 @@ def init_db():
         if database_url():
             con.execute("SELECT pg_advisory_xact_lock(727401)")  # several servers can start at the same time
             con.execute(_postgres_schema())
+            for table, cols in MIGRATIONS.items():  # a hosted database made by an earlier version keeps its data
+                for col, decl in cols.items():
+                    con.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {decl}")
         else:
             con.executescript(SCHEMA)
             for table, cols in MIGRATIONS.items():
@@ -240,7 +244,8 @@ def save_user(profile):
 
 
 def create_user(profile, pin):
-    """New user with a PIN. Raises ValueError if the PIN is invalid or the name is already taken."""
+    """New user with a PIN. Raises ValueError if the PIN is invalid or the name is already taken.
+    The sign-up form only gets here once the person has ticked the consent box, so consent is recorded now."""
     validate_pin(pin)
     with connect() as con:
         if con.execute("SELECT 1 FROM users WHERE lower(name) = lower(?)", (profile.name,)).fetchone():
@@ -248,7 +253,20 @@ def create_user(profile, pin):
     user_id = save_user(profile)
     set_pin(user_id, pin)
     log_weight(user_id, profile.weight_kg)
+    record_consent(user_id)
     return user_id
+
+
+def record_consent(user_id):
+    """The person agreed to their data being stored, now."""
+    with connect() as con:
+        con.execute("UPDATE users SET consented_at = ? WHERE id = ?", (_now(), user_id))
+
+
+def delete_user(user_id):
+    """Remove a person and everything of theirs: plans, foods, swaps, choices, weights and ratings (ON DELETE CASCADE)."""
+    with connect() as con:
+        con.execute("DELETE FROM users WHERE id = ?", (user_id,))
 
 
 def update_user(user_id, profile):

@@ -145,6 +145,7 @@ def test_app_setting_and_arabic(tmp_path, monkeypatch):
     monkeypatch.setenv("NUTRI_DB_PATH", str(tmp_path / "t.db"))
     at = AppTest.from_file("../app.py", default_timeout=180).run()
     at.radio[0].set_value("New user").run()
+    at.checkbox(key="pf_consent").check()
     at.text_input[0].input("Sherif")
     at.text_input[1].input("1234")
     at.text_input[2].input("1234")

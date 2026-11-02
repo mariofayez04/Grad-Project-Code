@@ -23,6 +23,7 @@ def temp_db(tmp_path, monkeypatch):
 def sign_up(at, name, pin="1234"):
     """Fill the 'New user' form of the app (name, PIN, repeat PIN) without submitting it."""
     at.radio[0].set_value("New user").run()
+    at.checkbox(key="pf_consent").check()
     at.text_input[0].input(name)
     at.text_input[1].input(pin)
     at.text_input[2].input(pin)
@@ -229,3 +230,75 @@ def test_app_sign_in(temp_db):
     assert not at.exception
     assert any(f"Signed in as **Nour**" in m.value for m in at.markdown)
     assert at.session_state.user_id == uid
+
+
+# --- consent and deleting an account ----------------------------------------------------------------------------
+def sign_in(at, name, pin):
+    at.text_input[0].input(name)
+    at.text_input[1].input(pin)
+    at.button[0].click().run()
+    assert not at.exception
+
+
+def button(at, label):
+    return next(b for b in at.button if b.label == label)
+
+
+def test_new_user_must_agree_before_anything_is_saved(temp_db):
+    from streamlit.testing.v1 import AppTest
+    at = AppTest.from_file("../app.py", default_timeout=120).run()
+    sign_up(at, "Omar")
+    at.checkbox(key="pf_consent").uncheck()
+    button(at, "Create profile and weekly plan").click().run()
+    assert any("tick the box" in e.value for e in at.error)
+    assert db.list_users() == []
+    at.checkbox(key="pf_consent").check()
+    button(at, "Create profile and weekly plan").click().run()
+    assert not at.exception
+    assert db.get_user(db.list_users()[0]["id"])["consented_at"]
+
+
+def test_old_account_is_asked_for_consent_and_can_agree(temp_db):
+    from streamlit.testing.v1 import AppTest
+    uid = db.create_user(UserProfile("Nour", 30, "female", 60, 165, 2, "maintain"), "4821")
+    with db.connect() as con:                                       # an account from before the consent box
+        con.execute("UPDATE users SET consented_at = NULL WHERE id = ?", (uid,))
+    at = AppTest.from_file("../app.py", default_timeout=120).run()
+    sign_in(at, "Nour", "4821")
+    assert not any("Signed in as" in m.value for m in at.markdown)  # nothing else opens until they answer
+    button(at, "I agree and continue").click().run()
+    assert not at.exception
+    assert db.get_user(uid)["consented_at"]
+    assert any("Signed in as **Nour**" in m.value for m in at.markdown)
+
+
+def test_delete_account_needs_the_pin_and_removes_everything(temp_db, week):
+    from streamlit.testing.v1 import AppTest
+    user, plan, targets, prefs = week
+    uid = db.create_user(user, "4821")
+    other = db.create_user(UserProfile("Nour", 30, "female", 60, 165, 2, "maintain"), "1111")
+    pid = db.save_plan(uid, plan, targets, prefs)
+    kept = db.save_plan(other, plan, targets, prefs)
+    db.save_survey(pid, 4, 4, 4, "yes")
+    item = db.plan_items(pid).iloc[0]
+    db.record_choice(pid, 0, item["slot"], "current", [(item["fdc_id"], item["name"])], [(item["fdc_id"], item["name"])])
+    at = AppTest.from_file("../app.py", default_timeout=120).run()
+    sign_in(at, user.name, "4821")
+    at.session_state["goto"] = "Profile"
+    at.run()
+    at.text_input(key="delete_pin").input("0000")
+    at.checkbox(key="delete_sure").check()
+    button(at, "Delete my account").click().run()
+    assert any("Nothing was deleted" in e.value for e in at.error)
+    assert db.get_user(uid)
+    at.text_input(key="delete_pin").input("4821")
+    at.checkbox(key="delete_sure").check()
+    button(at, "Delete my account").click().run()
+    assert not at.exception
+    assert any("have been deleted" in x.value for x in at.success)
+    assert db.get_user(uid) is None
+    assert db.plan_items(pid).empty and db.weight_history(uid).empty
+    assert db.get_survey(pid) is None
+    with db.connect() as con:
+        assert con.execute("SELECT COUNT(*) AS n FROM choices WHERE plan_id = ?", (pid,)).fetchone()["n"] == 0
+    assert db.get_user(other) and not db.plan_items(kept).empty     # nobody else's data is touched
