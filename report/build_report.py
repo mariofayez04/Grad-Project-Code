@@ -13,7 +13,7 @@ from pathlib import Path
 from lxml import etree
 from PIL import Image
 
-from content import CHAPTERS, Bullets, Fig, H3, Numbered, P, Table
+from content import CHAPTERS, Arabic, Bullets, Fig, H3, Numbered, P, Table
 
 TEMPLATE = Path(r"E:\TM471-B-Report-Template.docx")
 OUT = Path(__file__).parent / "Report2 Mario Fayez Sobhy 23510186.docx"
@@ -35,20 +35,13 @@ ABBREVIATIONS = [
     ("BMR", "Basal Metabolic Rate"),
     ("CSV", "Comma-Separated Values"),
     ("DASH", "Dietary Approaches to Stop Hypertension"),
-    ("DFD", "Data Flow Diagram"),
-    ("ERD", "Entity-Relationship Diagram"),
-    ("HMAC", "Hash-based Message Authentication Code"),
     ("KNN", "K-Nearest Neighbors"),
-    ("ML", "Machine Learning"),
     ("NER", "Named Entity Recognition"),
-    ("NLP", "Natural Language Processing"),
     ("PBKDF2", "Password-Based Key Derivation Function 2"),
     ("PDF", "Portable Document Format"),
     ("PIN", "Personal Identification Number"),
-    ("SQL", "Structured Query Language"),
     ("SR Legacy", "Standard Reference Legacy (USDA food data release)"),
     ("TDEE", "Total Daily Energy Expenditure"),
-    ("UI", "User Interface"),
     ("USDA", "United States Department of Agriculture"),
 ]
 DECLARATION = ("I hereby certify that this material, which I now submit for assessment on the program of study leading to "
@@ -73,7 +66,6 @@ ACKNOWLEDGMENTS = [
 REFERENCES = [
     "Adomavicius, G. and Tuzhilin, A. (2005) ‘Toward the next generation of recommender systems: a survey of the state-of-the-art and possible extensions’, IEEE Transactions on Knowledge and Data Engineering, 17(6), pp. 734–749.",
     "Afshin, A. et al. (2019) ‘Health effects of dietary risks in 195 countries, 1990–2017: a systematic analysis for the Global Burden of Disease Study 2017’, The Lancet, 393(10184), pp. 1958–1972.",
-    "Aggarwal, C.C. (2016) Recommender Systems: The Textbook. Cham: Springer.",
     "Appel, L.J. et al. (1997) ‘A clinical trial of the effects of dietary patterns on blood pressure’, New England Journal of Medicine, 336(16), pp. 1117–1124.",
     "Arab Republic of Egypt (2020) Law No. 151 of 2020 Promulgating the Personal Data Protection Law. Cairo.",
     "Burke, R. (2002) ‘Hybrid recommender systems: survey and experiments’, User Modeling and User-Adapted Interaction, 12(4), pp. 331–370.",
@@ -89,14 +81,12 @@ REFERENCES = [
     "Khamesian, S., Arefeen, A., Carpenter, S.M. and Ghasemzadeh, H. (2025) ‘NutriGen: personalized meal plan generator leveraging large language models to enhance dietary and nutritional adherence’, arXiv preprint, arXiv:2502.20601.",
     "Lops, P., de Gemmis, M. and Semeraro, G. (2011) ‘Content-based recommender systems: state of the art and trends’, in Ricci, F., Rokach, L., Shapira, B. and Kantor, P.B. (eds.) Recommender Systems Handbook. New York: Springer, pp. 73–105.",
     "Mifflin, M.D. et al. (1990) ‘A new predictive equation for resting energy expenditure in healthy individuals’, The American Journal of Clinical Nutrition, 51(2), pp. 241–247.",
-    "Min, W., Jiang, S. and Jain, R. (2020) ‘Food recommendation: framework, existing solutions, and challenges’, IEEE Transactions on Multimedia, 22(10), pp. 2659–2671.",
     "MyFitnessPal (2026) MyFitnessPal. Available at: https://www.myfitnesspal.com/ (Accessed: 2 November 2026).",
     "National Academies of Sciences, Engineering, and Medicine (2019) Dietary Reference Intakes for Sodium and Potassium. Washington, DC: National Academies Press.",
     "Niszczota, P. and Rybicka, I. (2023) ‘The credibility of dietary advice formulated by ChatGPT: robo-diets for people with food allergies’, Nutrition, 112, 112076.",
     "Noom (2026) Noom: Weight Loss and GLP-1 Support [Mobile app listing]. Available at: https://apps.apple.com/us/app/noom-weight-loss-glp-1-support/id634598719 (Accessed: 2 November 2026).",
     "Popovski, G., Seljak, B.K. and Eftimov, T. (2019) ‘FoodBase corpus: a new resource of annotated food entities’, Database, 2019, baz121.",
     "Reimers, N. and Gurevych, I. (2019) ‘Sentence-BERT: sentence embeddings using Siamese BERT-networks’, Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing, pp. 3980–3990.",
-    "Ricci, F., Rokach, L. and Shapira, B. (eds.) (2015) Recommender Systems Handbook. 2nd edn. New York: Springer.",
     "Stark, P.B. and Parker, R.L. (1995) ‘Bounded-variable least-squares: an algorithm and applications’, Computational Statistics, 10, pp. 129–141.",
     "Stigler, G.J. (1945) ‘The cost of subsistence’, Journal of Farm Economics, 27(2), pp. 303–314.",
     "Stojanov, R., Popovski, G., Cenikj, G., Koroušić Seljak, B. and Eftimov, T. (2021) ‘A fine-tuned bidirectional encoder representations from transformers model for food named-entity recognition: algorithm development and validation’, Journal of Medical Internet Research, 23(8), e28229.",
@@ -107,7 +97,6 @@ REFERENCES = [
     "Virtanen, P. et al. (2020) ‘SciPy 1.0: fundamental algorithms for scientific computing in Python’, Nature Methods, 17(3), pp. 261–272.",
     "World Health Organization (2026) Healthy Diet. Available at: https://www.who.int/news-room/fact-sheets/detail/healthy-diet (Accessed: 2 November 2026).",
     "Yang, L. et al. (2017) ‘Yum-me: a personalized nutrient-based meal recommender system’, ACM Transactions on Information Systems, 36(1), pp. 1–31.",
-    "Zhang, S., Yao, L., Sun, A. and Tay, Y. (2019) ‘Deep learning based recommender system: a survey and new perspectives’, ACM Computing Surveys, 52(1), pp. 1–38.",
 ]
 
 
@@ -319,6 +308,34 @@ class Writer:
             t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
         return p
 
+    def arabic(self, text):
+        """Right-to-left paragraph."""
+        p = etree.Element(W + "p")
+        ppr = etree.SubElement(p, W + "pPr")
+        etree.SubElement(ppr, W + "pStyle").set(W + "val", "ALLtext")
+        etree.SubElement(ppr, W + "bidi")
+        etree.SubElement(ppr, W + "snapToGrid").set(W + "val", "0")
+        spacing = etree.SubElement(ppr, W + "spacing")
+        spacing.set(W + "line", "300")
+        spacing.set(W + "lineRule", "auto")
+        etree.SubElement(ppr, W + "ind").set(W + "firstLine", "0")
+        etree.SubElement(ppr, W + "jc").set(W + "val", "both")
+        for i, part in enumerate(re.split(r"(NutriPlan AI)", text)):      # the Latin name stays left-to-right inside the line
+            if not part:
+                continue
+            run = etree.SubElement(p, W + "r")
+            rpr = etree.SubElement(run, W + "rPr")
+            fonts = etree.SubElement(rpr, W + "rFonts")
+            for key in ("ascii", "hAnsi", "cs"):
+                fonts.set(W + key, "Times New Roman" if i % 2 else "Simplified Arabic")
+            etree.SubElement(rpr, W + "szCs").set(W + "val", "26")
+            if not i % 2:
+                etree.SubElement(rpr, W + "rtl")
+            t = etree.SubElement(run, W + "t")
+            t.text = part
+            t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+        return p
+
     def subheading(self, text, model):
         p = copy.deepcopy(model)
         for tag in ("bookmarkStart", "bookmarkEnd"):
@@ -416,6 +433,8 @@ class Writer:
     def render(self, block, models):
         if isinstance(block, P):
             return [self.paragraph(block.text)]
+        if isinstance(block, Arabic):
+            return [self.arabic(block.text)]
         if isinstance(block, Bullets):
             return [self.paragraph(x, number=18, first_line=0) for x in block.items]
         if isinstance(block, Numbered):
@@ -470,6 +489,9 @@ def write_chapters(body):
     models = {"H3": copy.deepcopy(writer.heading("2.1.1 Subsection"))}
     for section in CHAPTERS:
         writer.fill(section["heading"], section["blocks"], models, section.get("rename"))
+    for el in list(body):                                    # the template's empty section after Chapter 6: a blank page
+        if writer.style_of(el) == "H1" and has_section(el) and not text_of(el).strip():
+            body.remove(el)
     return writer
 
 
@@ -497,6 +519,15 @@ def add_images(rels_xml, images):
     return etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
 
 
+def fix_properties(xml):
+    """The file's own title and author, shown by Word and in PDF viewers."""
+    text = xml.decode("utf-8")
+    text = re.sub(r"<dc:title>.*?</dc:title>|<dc:title/>", "<dc:title>AI Personalized Nutrition Recommendation System</dc:title>", text)
+    text = re.sub(r"<dc:creator>.*?</dc:creator>|<dc:creator/>", "<dc:creator>Mario Fayez Sobhy Bebawe</dc:creator>", text)
+    text = re.sub(r"<cp:lastModifiedBy>.*?</cp:lastModifiedBy>", "<cp:lastModifiedBy>Mario Fayez Sobhy Bebawe</cp:lastModifiedBy>", text)
+    return text.encode("utf-8")
+
+
 def fix_header(xml):
     """Headers carry the faculty's name, and one has a typo."""
     return xml.replace(b"Faculty of Computer Studies", FACULTY.encode()).replace(b"Refernces", b"References")
@@ -521,6 +552,8 @@ def build():
                 data = add_lists(data, writer.extra_lists)
             elif item.filename == "word/_rels/document.xml.rels":
                 data = add_images(data, writer.images)
+            elif item.filename == "docProps/core.xml":
+                data = fix_properties(data)
             elif re.fullmatch(r"word/header\d+\.xml", item.filename):
                 data = fix_header(data)
             out.writestr(item, data)

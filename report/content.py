@@ -12,6 +12,11 @@ class P:
 
 
 @dataclass
+class Arabic:
+    text: str
+
+
+@dataclass
 class Bullets:
     items: list
 
@@ -46,6 +51,15 @@ class Table:
 
 # Each entry: {"heading": start of the template's heading, "blocks": [...], "rename": new heading text (optional)}.
 CHAPTERS = [
+    {"heading": "Abstract", "blocks": [
+        P("General diet plans ignore individual needs, and planning personal meals takes knowledge and time. This project built NutriPlan "
+          "AI, a free web application that generated seven-day meal plans from USDA food data and 20 Egyptian dishes. It calculated "
+          "energy targets, read preferences and allergies from free text using an AI language model with fixed safety rules, solved "
+          "portions by optimization, and learned from the meals users ate or skipped. In tests, planned days had a mean calorie error of "
+          "2.3%, and no stated allergen reached a plan once it was understood. Testing on new wording exposed a weakness: after a safety "
+          "fix, the parser blocked 68.8% of allergy items on sentences kept apart, and the application asked about most of the others. "
+          "Simulated users received far fewer disliked foods with learning. No study with real users was completed."),
+    ]},
     # ---------------------------------------------------------------------------------------------- Chapter 1
     {"heading": "Chapter 1", "blocks": [
         P("Food choices shape long-term health. A global analysis estimated that 11 million deaths in 2017 were attributable to "
@@ -146,7 +160,7 @@ CHAPTERS = [
         P("Calories alone do not make a healthy plan. Public guidance also sets values for individual nutrients, such as limiting "
           "saturated fat to under 10% of energy (U.S. Department of Agriculture and U.S. Department of Health and Human Services, "
           "2020) and sodium to 2,300 mg a day to reduce the risk of chronic disease (National Academies of Sciences, Engineering, "
-          "and Medicine, 2019). The World Health Organization (2026) advises keeping free sugars below 10% of energy. For conditions "
+          "and Medicine, 2019). Reference values for iron and calcium come from the Institute of Medicine (2001, 2011). The World Health Organization (2026) advises keeping free sugars below 10% of energy. For conditions "
           "such as high blood pressure, dietary patterns have been tested directly: the DASH diet lowered blood pressure in a "
           "controlled trial (Appel et al., 1997). These values gave the project more to aim for than calories and macronutrients."),
         H3("2.1.2 Recommender Systems"),
@@ -749,5 +763,18 @@ CHAPTERS = [
         ]),
         P("Above all, the project showed that being honest about a system's limits is part of building it safely. The next step is the one "
           "this project could not take: putting it in front of real people and measuring what happens."),
+    ]},
+    {"heading": "الملخص العربي", "blocks": [
+        Arabic("يصعب على كثير من الناس الالتزام بنظام غذائي صحي، لأن الخطط الغذائية الجاهزة لا تراعي الفروق بين الأفراد، ولأن إعداد خطة شخصية يتطلب معرفة ووقتًا لا يتوفران للجميع. "
+               "ومن هنا جاءت فكرة هذا المشروع، الذي يهدف إلى بناء نظام ذكي يقترح وجبات أسبوع كامل تناسب جسم المستخدم وذوقه وحالته الصحية، ثم يتحسن مع الوقت بناءً على ما يأكله فعلًا."),
+        Arabic("نتج عن المشروع تطبيق ويب مجاني يعمل بالفعل باسم NutriPlan AI. يعتمد التطبيق على بيانات وزارة الزراعة الأمريكية بعد تنقيحها إلى 3,184 صنفًا غذائيًا، أضيفت إليها 20 أكلة مصرية مثل الكشري والملوخية والفول المدمس. "
+               "ويحسب النظام احتياجات المستخدم من السعرات والعناصر الغذائية بمعادلات علمية معتمدة، ويقرأ تفضيلاته وحساسيته الغذائية من نص يكتبه بأسلوبه الخاص، مستخدمًا نموذج ذكاء اصطناعي مدعومًا بقواعد ثابتة للسلامة. "
+               "أما كميات الطعام فتُحسب بطريقة رياضية لا تترك للنموذج، كما يتعلم النظام كل أسبوع من الوجبات التي تناولها المستخدم أو تركها."),
+        Arabic("أظهرت الاختبارات أن متوسط الخطأ في السعرات بلغ 2.3%، وأن 98.1% من الأيام جاءت في حدود 10% من الهدف، ولم يصل أي مسبب حساسية إلى الخطة متى فهمه النظام. "
+               "غير أن أهم نتيجة جاءت من اختبار جمل جديدة لم يُبنَ عليها النظام، إذ كشفت ضعفًا لم تظهره الاختبارات الأولى. وبعد إضافة طبقة للسلامة، منع النظام 68.8% من حالات الحساسية في مجموعة جمل حُفظت جانبًا لهذا الغرض، وصار يسأل المستخدم عن معظم الحالات الأخرى. "
+               "ولهذا لا يصح الاعتماد عليه وحده في حالات الحساسية الخطيرة."),
+        Arabic("وأجريت الاختبارات على مستخدمين افتراضيين، ولم تكتمل تجربة مع مستخدمين حقيقيين، فبقي رضا المستخدمين غير مقيس، وهذه هي الخطوة التالية الأهم. "
+               "كما أضيفت خلال المشروع موافقة صريحة على حفظ البيانات وإمكانية حذف الحساب، مراعاةً لخصوصية البيانات الصحية. "
+               "ويبين المشروع في مجمله أن التخطيط الغذائي الشخصي ممكن ببيانات ونماذج مجانية، بشرط توزيع الأدوار بين الذكاء الاصطناعي والقواعد الثابتة، والصدق في عرض حدود النظام."),
     ]},
 ]
