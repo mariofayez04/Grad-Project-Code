@@ -75,13 +75,14 @@ REFERENCES = [
     "Afshin, A. et al. (2019) ‘Health effects of dietary risks in 195 countries, 1990–2017: a systematic analysis for the Global Burden of Disease Study 2017’, The Lancet, 393(10184), pp. 1958–1972.",
     "Aggarwal, C.C. (2016) Recommender Systems: The Textbook. Cham: Springer.",
     "Appel, L.J. et al. (1997) ‘A clinical trial of the effects of dietary patterns on blood pressure’, New England Journal of Medicine, 336(16), pp. 1117–1124.",
+    "Arab Republic of Egypt (2020) Law No. 151 of 2020 Promulgating the Personal Data Protection Law. Cairo.",
     "Burke, R. (2002) ‘Hybrid recommender systems: survey and experiments’, User Modeling and User-Adapted Interaction, 12(4), pp. 331–370.",
+    "Cronometer (2026) Cronometer. Available at: https://cronometer.com/ (Accessed: 2 November 2026).",
     "Devlin, J., Chang, M.-W., Lee, K. and Toutanova, K. (2019) ‘BERT: pre-training of deep bidirectional transformers for language understanding’, Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics, pp. 4171–4186.",
     "Dizex (no date) FoodBaseBERT-NER. Available at: https://huggingface.co/Dizex/FoodBaseBERT-NER (Accessed: 2 November 2026).",
     "Eat This Much (2026) Automatic Meal Planner. Available at: https://www.eatthismuch.com/ (Accessed: 2 November 2026).",
     "Elsweiler, D. and Harvey, M. (2015) ‘Towards automatic meal plan recommendations for balanced nutrition’, Proceedings of the 9th ACM Conference on Recommender Systems, pp. 313–316.",
     "Frankenfield, D., Roth-Yousey, L. and Compher, C. (2005) ‘Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review’, Journal of the American Dietetic Association, 105(5), pp. 775–789.",
-    "Freyne, J. and Berkovsky, S. (2010) ‘Intelligent food planning: personalized recipe recommendation’, Proceedings of the 15th International Conference on Intelligent User Interfaces, pp. 321–324.",
     "Hall, K.D. (2008) ‘What is the required energy deficit per unit weight loss?’, International Journal of Obesity, 32(3), pp. 573–576.",
     "Institute of Medicine (2001) Dietary Reference Intakes for Vitamin A, Vitamin K, Arsenic, Boron, Chromium, Copper, Iodine, Iron, Manganese, Molybdenum, Nickel, Silicon, Vanadium, and Zinc. Washington, DC: National Academies Press.",
     "Institute of Medicine (2011) Dietary Reference Intakes for Calcium and Vitamin D. Washington, DC: National Academies Press.",
@@ -92,6 +93,7 @@ REFERENCES = [
     "MyFitnessPal (2026) MyFitnessPal. Available at: https://www.myfitnesspal.com/ (Accessed: 2 November 2026).",
     "National Academies of Sciences, Engineering, and Medicine (2019) Dietary Reference Intakes for Sodium and Potassium. Washington, DC: National Academies Press.",
     "Niszczota, P. and Rybicka, I. (2023) ‘The credibility of dietary advice formulated by ChatGPT: robo-diets for people with food allergies’, Nutrition, 112, 112076.",
+    "Noom (2026) Noom: Weight Loss and GLP-1 Support [Mobile app listing]. Available at: https://apps.apple.com/us/app/noom-weight-loss-glp-1-support/id634598719 (Accessed: 2 November 2026).",
     "Popovski, G., Seljak, B.K. and Eftimov, T. (2019) ‘FoodBase corpus: a new resource of annotated food entities’, Database, 2019, baz121.",
     "Reimers, N. and Gurevych, I. (2019) ‘Sentence-BERT: sentence embeddings using Siamese BERT-networks’, Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing, pp. 3980–3990.",
     "Ricci, F., Rokach, L. and Shapira, B. (eds.) (2015) Recommender Systems Handbook. 2nd edn. New York: Springer.",
@@ -288,10 +290,15 @@ class Writer:
             num = etree.SubElement(ppr, W + "numPr")
             etree.SubElement(num, W + "ilvl").set(W + "val", "0")
             etree.SubElement(num, W + "numId").set(W + "val", str(number))
+        etree.SubElement(ppr, W + "snapToGrid").set(W + "val", "0")   # same line spacing in every chapter's section
         spacing = etree.SubElement(ppr, W + "spacing")
         spacing.set(W + "line", "276")
         spacing.set(W + "lineRule", "auto")
-        if first_line is not None:
+        if number is not None:                                   # wrapped lines stay in line with the text
+            ind = etree.SubElement(ppr, W + "ind")
+            ind.set(W + "left", "432")
+            ind.set(W + "hanging", "432")
+        elif first_line is not None:
             etree.SubElement(ppr, W + "ind").set(W + "firstLine", str(first_line))
         if center:
             etree.SubElement(ppr, W + "jc").set(W + "val", "center")
@@ -426,7 +433,8 @@ class Writer:
         """Put blocks under a heading. Everything of the template up to the next heading of the same level or higher goes;
         section breaks and page breaks stay, because the headers and page numbers depend on them."""
         head = self.heading(start)
-        level = HEADING_STYLES.index(self.style_of(head))
+        # A chapter's text ends at its first section; a section's text ends at the next section.
+        level = 3 if self.style_of(head) == "H1" else HEADING_STYLES.index(self.style_of(head))
         el = head.getnext()
         while el is not None:
             style = self.style_of(el)
@@ -445,6 +453,9 @@ class Writer:
             el = following
         if rename:
             set_text(head, rename)
+        ppr = head.find(W + "pPr")                               # a heading never sits alone at the foot of a page
+        if ppr.find(W + "keepNext") is None:
+            ppr.insert(1, etree.Element(W + "keepNext"))
         previous = head
         for block in blocks:
             for new in self.render(block, models):

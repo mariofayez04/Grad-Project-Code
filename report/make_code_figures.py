@@ -14,6 +14,7 @@ OUT = Path(__file__).parent / "figures"
 FIGURES = [("fig_4_5_code_solve_grams", "src/planner.py", "solve_grams"),
            ("fig_4_6_code_update_taste", "src/feedback.py", "update_taste"),
            ("fig_4_7_code_health_upgrade", "src/parser.py", "health_upgrade")]
+WIDTH, FONT = 96, 9.2                   # characters per row and font size: stays readable on the page
 
 
 def source_of(path, name):
@@ -23,25 +24,43 @@ def source_of(path, name):
     return node.lineno, lines[node.lineno - 1:node.end_lineno]
 
 
+def wrapped(lines, start, width=WIDTH):
+    """(line number or "", text) for each row: a long source line continues on the next row, indented."""
+    rows = []
+    for i, line in enumerate(lines):
+        indent = len(line) - len(line.lstrip()) + 6
+        first = True
+        while len(line) > width:
+            cut = line.rfind(" ", indent, width)
+            cut = cut if cut > indent else width
+            rows.append((start + i if first else "", line[:cut]))
+            line = " " * indent + line[cut:].lstrip()
+            first = False
+        rows.append((start + i if first else "", line))
+    return rows
+
+
 def draw(name, path, function):
     start, lines = source_of(path, function)
-    height = 0.3 + 0.19 * (len(lines) + 1)
-    fig = plt.figure(figsize=(8.6, height), facecolor="white")
+    rows = wrapped(lines, start)
+    row = 0.2
+    height = 0.12 + row * (len(rows) + 1)
+    fig = plt.figure(figsize=(7.4, height), facecolor="white")
     ax = fig.add_axes([0, 0, 1, 1])
     ax.axis("off")
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    step = 0.19 / height
-    y = 1 - step
-    ax.text(0.012, y, f"{path}", fontsize=8.5, family="Consolas", color="#5a616b", va="center", fontweight="bold")
+    step = row / height
+    y = 1 - step * 0.8
+    ax.text(0.008, y, path, fontsize=FONT, family="Consolas", color="#5a616b", va="center", fontweight="bold")
     y -= step
-    for i, line in enumerate(lines):
-        ax.text(0.012, y, f"{start + i:>4}", fontsize=8.5, family="Consolas", color="#9aa1ab", va="center")
-        ax.text(0.06, y, line, fontsize=8.5, family="Consolas", color="#1b1f24", va="center")
+    for number, text in rows:
+        ax.text(0.008, y, f"{number:>4}", fontsize=FONT, family="Consolas", color="#9aa1ab", va="center")
+        ax.text(0.058, y, text, fontsize=FONT, family="Consolas", color="#1b1f24", va="center")
         y -= step
-    fig.savefig(OUT / f"{name}.png", dpi=200, facecolor="white", bbox_inches="tight", pad_inches=0.05)
+    fig.savefig(OUT / f"{name}.png", dpi=220, facecolor="white", bbox_inches="tight", pad_inches=0.05)
     plt.close(fig)
-    print(name, len(lines), "lines; longest", max(len(x) for x in lines))
+    print(name, len(rows), "rows")
 
 
 if __name__ == "__main__":
